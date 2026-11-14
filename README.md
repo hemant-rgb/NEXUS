@@ -27,8 +27,8 @@ DISCOVER → UNDERSTAND → MATCH → PREPARE → EXECUTE → TRACK
 - **Phase 3 (Completed)**: Real-World Opportunity Source Integrations & Automated Data Ingestion. Active external connectors (Remotive, Arbeitnow, GSoC dataset), SSRF-guarded HTTP client, dual-tier entity resolution, sync telemetry runs, and data provenance UI badges.
 - **Phase 4 (Completed)**: NEXUS Intelligence & Personalized Opportunity Matching. 6-dimension deterministic scoring, grounded eligibility state machine with disqualifier score capping, technical skill-gap matrix, provider-independent AI intelligence synthesizer (`LocalFallbackAiProvider`), token usage tracking, and personalized recommendations feed.
 - **Phase 5 (Completed)**: NEXUS Strategy (Personalized Preparation Roadmaps & Task Management). Opportunity-based and goal-based roadmap synthesis, ordered milestones, concrete completion criteria, deterministic 5-day study capacity scheduling, dynamic progress telemetry, partial regeneration preserving completed work, and verified learning resource catalog.
-- **Phase 6 (Upcoming)**: NEXUS Execution (GitHub Contribution Assistant & Application Workflows).
-- **Phase 7 (Upcoming)**: NEXUS Pulse (Unified Progress & Deadline Telemetry Monitor).
+- **Phase 6 (Completed)**: GitHub Intelligence & Open-Source Contribution Engine. AES-256 token encryption at rest (`TokenEncryptionService`), GitHub profile intelligence, repository deep analysis, open-source issue discovery, deterministic issue suitability scoring ($0.0 - 100.0$), and structured contribution workspaces.
+- **Phase 7 (Completed)**: Application Management & Execution Engine. Full pipeline Kanban tracking across 9 stages, immutable activity audit trail, structured resume management and opportunity-tailoring, grounded document generation (cover letters, GSoC proposals, motivation essays), interview & OA tracking, and Q&A advisor.
 
 ---
 
@@ -77,6 +77,8 @@ Open `http://localhost:3000` in your browser.
 ---
 
 ## Documentation Links
+- [Application Management & Execution Engine](docs/APPLICATIONS.md)
+- [GitHub Intelligence & Open-Source Engine](docs/GITHUB.md)
 - [Strategy & Preparation Roadmaps Specification](docs/ROADMAPS.md)
 - [Intelligence & Matching Engine Specification](docs/INTELLIGENCE.md)
 - [Opportunity Sources & Ingestion Specification](docs/SOURCES.md)

@@ -14,12 +14,13 @@ import {
   FileCode,
   GitBranch,
   ShieldAlert,
+  Briefcase,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserProfile, UserSkill, UserPreferences, OpportunityMatch, RoadmapSummary } from "@/lib/types";
+import { UserProfile, UserSkill, UserPreferences, OpportunityMatch, RoadmapSummary, ApplicationAnalytics } from "@/lib/types";
 import { Map } from "lucide-react";
 
 export default function DashboardPage() {
@@ -29,6 +30,7 @@ export default function DashboardPage() {
   const [skills, setSkills] = useState<UserSkill[]>([]);
   const [topMatches, setTopMatches] = useState<OpportunityMatch[]>([]);
   const [activeRoadmaps, setActiveRoadmaps] = useState<RoadmapSummary[]>([]);
+  const [appAnalytics, setAppAnalytics] = useState<ApplicationAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,6 +51,10 @@ export default function DashboardPage() {
 
         api.roadmaps.list()
           .then((res) => setActiveRoadmaps(res.filter((r) => r.status === "ACTIVE").slice(0, 2)))
+          .catch(() => {});
+
+        api.applications.getAnalytics()
+          .then((res) => setAppAnalytics(res))
           .catch(() => {});
       } finally {
         setLoading(false);
@@ -297,6 +303,42 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Application Execution & Metrics Banner (Phase 7) */}
+      {appAnalytics && (
+        <div className="p-4 rounded-md bg-surface-card border border-surface-border space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4 text-brand" />
+              <h2 className="text-base font-mono font-bold text-text-primary">
+                Application Execution Pipeline
+              </h2>
+            </div>
+            <Link href="/applications" className="text-xs font-mono text-brand hover:underline flex items-center gap-1">
+              Open Kanban Board <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+            <div className="p-2.5 rounded bg-bg-main border border-surface-border">
+              <span className="text-[10px] font-mono uppercase text-text-muted">Total Tracked</span>
+              <div className="text-lg font-mono font-bold text-text-primary">{appAnalytics.totalApplications}</div>
+            </div>
+            <div className="p-2.5 rounded bg-bg-main border border-surface-border">
+              <span className="text-[10px] font-mono uppercase text-text-muted">In Progress</span>
+              <div className="text-lg font-mono font-bold text-brand">{appAnalytics.appliedCount + appAnalytics.interviewCount}</div>
+            </div>
+            <div className="p-2.5 rounded bg-bg-main border border-surface-border">
+              <span className="text-[10px] font-mono uppercase text-text-muted">Interviews</span>
+              <div className="text-lg font-mono font-bold text-indigo-400">{appAnalytics.interviewCount}</div>
+            </div>
+            <div className="p-2.5 rounded bg-bg-main border border-surface-border">
+              <span className="text-[10px] font-mono uppercase text-text-muted">Offers</span>
+              <div className="text-lg font-mono font-bold text-emerald-400">{appAnalytics.offerCount}</div>
+            </div>
           </div>
         </div>
       )}

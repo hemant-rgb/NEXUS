@@ -22,6 +22,19 @@ import {
   LearningResource,
   CreateRoadmapPayload,
   UpdateTaskPayload,
+  GitHubConnection,
+  GitHubRepository,
+  GitHubIssue,
+  IssueSuitability,
+  ContributionWorkspace,
+  GitHubAiAnalysis,
+  Application,
+  ApplicationActivity,
+  Resume,
+  ApplicationDocument,
+  ApplicationInterview,
+  ApplicationAnalytics,
+  ApplicationQuestionResponse,
 } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
@@ -277,6 +290,221 @@ export const api = {
 
     searchResources: (query?: string) =>
       request<LearningResource[]>(`/resources/search${query ? `?query=${encodeURIComponent(query)}` : ""}`, { method: "GET" }),
+  },
+
+  github: {
+    getConnection: () =>
+      request<GitHubConnection | null>("/github/connection", { method: "GET" }),
+
+    connect: (payload: { accessToken: string; username?: string; scopes?: string }) =>
+      request<GitHubConnection>("/github/connect", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    disconnect: () =>
+      request<void>("/github/disconnect", { method: "DELETE" }),
+
+    getProfile: () =>
+      request<GitHubConnection>("/github/profile", { method: "GET" }),
+
+    searchRepositories: (query?: string, language?: string) => {
+      const params = new URLSearchParams();
+      if (query) params.set("query", query);
+      if (language && language !== "ALL") params.set("language", language);
+      const qs = params.toString();
+      return request<GitHubRepository[]>(`/github/repositories${qs ? `?${qs}` : ""}`, { method: "GET" });
+    },
+
+    getSavedRepositories: () =>
+      request<GitHubRepository[]>("/github/repositories/saved", { method: "GET" }),
+
+    getRepository: (id: string) =>
+      request<GitHubRepository>(`/github/repositories/${id}`, { method: "GET" }),
+
+    saveRepository: (id: string) =>
+      request<void>(`/github/repositories/${id}/save`, { method: "POST" }),
+
+    unsaveRepository: (id: string) =>
+      request<void>(`/github/repositories/${id}/save`, { method: "DELETE" }),
+
+    analyzeRepository: (id: string) =>
+      request<GitHubAiAnalysis>(`/github/repositories/${id}/analysis`, { method: "POST" }),
+
+    searchIssues: (params?: { query?: string; language?: string; goodFirstOnly?: boolean; helpWantedOnly?: boolean; state?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.query) q.set("query", params.query);
+      if (params?.language && params.language !== "ALL") q.set("language", params.language);
+      if (params?.goodFirstOnly) q.set("goodFirstOnly", "true");
+      if (params?.helpWantedOnly) q.set("helpWantedOnly", "true");
+      if (params?.state && params.state !== "ALL") q.set("state", params.state);
+      const qs = q.toString();
+      return request<GitHubIssue[]>(`/github/issues${qs ? `?${qs}` : ""}`, { method: "GET" });
+    },
+
+    getSavedIssues: () =>
+      request<GitHubIssue[]>("/github/issues/saved", { method: "GET" }),
+
+    getIssue: (id: string) =>
+      request<GitHubIssue>(`/github/issues/${id}`, { method: "GET" }),
+
+    saveIssue: (id: string) =>
+      request<void>(`/github/issues/${id}/save`, { method: "POST" }),
+
+    unsaveIssue: (id: string) =>
+      request<void>(`/github/issues/${id}/save`, { method: "DELETE" }),
+
+    getIssueSuitability: (id: string) =>
+      request<IssueSuitability>(`/github/issues/${id}/suitability`, { method: "GET" }),
+
+    analyzeIssue: (id: string) =>
+      request<GitHubAiAnalysis>(`/github/issues/${id}/analysis`, { method: "POST" }),
+
+    getContributions: (status?: string) =>
+      request<ContributionWorkspace[]>(`/users/me/contributions${status ? `?status=${status}` : ""}`, { method: "GET" }),
+
+    getContribution: (id: string) =>
+      request<ContributionWorkspace>(`/contributions/${id}`, { method: "GET" }),
+
+    createContribution: (payload: { repositoryId?: string; issueId?: string; roadmapTaskId?: string; title: string; status?: string; targetBranch?: string; pullRequestUrl?: string; researchNotes?: string; solutionPlan?: string }) =>
+      request<ContributionWorkspace>("/users/me/contributions", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    updateContribution: (id: string, payload: Partial<ContributionWorkspace>) =>
+      request<ContributionWorkspace>(`/contributions/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    deleteContribution: (id: string) =>
+      request<void>(`/contributions/${id}`, { method: "DELETE" }),
+  },
+
+  applications: {
+    list: (status?: string) =>
+      request<Application[]>(`/users/me/applications${status && status !== "ALL" ? `?status=${status}` : ""}`, { method: "GET" }),
+
+    get: (id: string) =>
+      request<Application>(`/applications/${id}`, { method: "GET" }),
+
+    create: (payload: {
+      opportunityId?: string;
+      roadmapId?: string;
+      title: string;
+      organization: string;
+      applicationType?: string;
+      applicationUrl?: string;
+      status?: string;
+      priority?: string;
+      deadline?: string;
+      expectedResponseDate?: string;
+      userNotes?: string;
+    }) =>
+      request<Application>("/users/me/applications", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    update: (id: string, payload: Partial<Application>) =>
+      request<Application>(`/applications/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    delete: (id: string) =>
+      request<void>(`/applications/${id}`, { method: "DELETE" }),
+
+    getActivities: (id: string) =>
+      request<ApplicationActivity[]>(`/applications/${id}/activities`, { method: "GET" }),
+
+    createActivity: (id: string, payload: { activityType: string; fromStatus?: string; toStatus?: string; description: string }) =>
+      request<ApplicationActivity>(`/applications/${id}/activities`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    getAnalytics: () =>
+      request<ApplicationAnalytics>("/applications/analytics", { method: "GET" }),
+
+    getDocuments: (applicationId: string) =>
+      request<ApplicationDocument[]>(`/applications/${applicationId}/documents`, { method: "GET" }),
+
+    generateDocument: (applicationId: string, payload: { documentType: string; title?: string; userInstructions?: string }) =>
+      request<ApplicationDocument>(`/applications/${applicationId}/documents/generate`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    updateDocument: (applicationId: string, documentId: string, payload: { title?: string; userInstructions?: string }) =>
+      request<ApplicationDocument>(`/applications/${applicationId}/documents/${documentId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    deleteDocument: (applicationId: string, documentId: string) =>
+      request<void>(`/applications/${applicationId}/documents/${documentId}`, { method: "DELETE" }),
+
+    answerQuestion: (payload: { question: string; context?: string }) =>
+      request<ApplicationQuestionResponse>("/applications/questions/answer", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    getInterviews: (applicationId: string) =>
+      request<ApplicationInterview[]>(`/applications/${applicationId}/interviews`, { method: "GET" }),
+
+    scheduleInterview: (applicationId: string, payload: {
+      stageType: string;
+      scheduledAt?: string;
+      durationMinutes?: number;
+      interviewerInfo?: string;
+      meetingLink?: string;
+      preparationNotes?: string;
+      status?: string;
+      outcomeNotes?: string;
+    }) =>
+      request<ApplicationInterview>(`/applications/${applicationId}/interviews`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    updateInterview: (applicationId: string, interviewId: string, payload: Partial<ApplicationInterview>) =>
+      request<ApplicationInterview>(`/applications/${applicationId}/interviews/${interviewId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    deleteInterview: (applicationId: string, interviewId: string) =>
+      request<void>(`/applications/${applicationId}/interviews/${interviewId}`, { method: "DELETE" }),
+
+    listResumes: () =>
+      request<Resume[]>("/users/me/resumes", { method: "GET" }),
+
+    getResume: (id: string) =>
+      request<Resume>(`/resumes/${id}`, { method: "GET" }),
+
+    createResume: (payload: Partial<Resume>) =>
+      request<Resume>("/users/me/resumes", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    updateResume: (id: string, payload: Partial<Resume>) =>
+      request<Resume>(`/resumes/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    deleteResume: (id: string) =>
+      request<void>(`/resumes/${id}`, { method: "DELETE" }),
+
+    tailorResume: (id: string, payload: { targetOpportunityId: string; instructions?: string }) =>
+      request<Resume>(`/resumes/${id}/tailor`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
   },
 };
 

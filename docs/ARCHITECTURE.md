@@ -1,4 +1,4 @@
-# NEXUS System Architecture — Phase 4: Intelligence Engine & Personalized Matching
+# NEXUS System Architecture — Phase 6 & Phase 7: GitHub Intelligence & Application Management
 
 ## 1. Architecture Overview
 
@@ -11,8 +11,10 @@ NEXUS is engineered as a high-performance **modular monolith** with clear domain
 |  - Command Center Shell (Sidebar, TopNav, Breadcrumbs)                  |
 |  - Recommendations Feed (/recommendations) with Dimension Dials         |
 |  - Discovery Engine UI (/opportunities, /opportunities/[id])            |
-|  - Match Intelligence & Technical Skill-Gap Matrix Component            |
-|  - AI Grounded Intelligence Synthesizer Component                       |
+|  - Strategy & Roadmaps (/roadmaps, /roadmaps/[id])                      |
+|  - GitHub Intelligence & Contributions (/github)                        |
+|  - Application Execution Pipeline (/applications, /applications/[id])   |
+|  - Resumes & Tailoring Console (/resumes)                               |
 |  - Bookmarks & Annotation Engine (/saved)                               |
 |  - Dark Developer Aesthetic / High Information Density                  |
 +-------------------------------------------------------------------------+
@@ -60,13 +62,32 @@ NEXUS is engineered as a high-performance **modular monolith** with clear domain
 |  | - Progress Telemetry, Overdue Detection & Work Preservation       |  |
 |  | - Curated Learning Resources Catalog & SSRF-Safe URL Validation   |  |
 |  +-------------------------------------------------------------------+  |
+|                                                                         |
+|  +-------------------------------------------------------------------+  |
+|  |                    GitHub Intelligence Module                     |  |
+|  | - AES-256 Token Encryption at Rest (TokenEncryptionService)       |  |
+|  | - Profile Sync & Public Repository Intelligence                   |  |
+|  | - Deterministic Issue Suitability Scoring (0.0 - 100.0)           |  |
+|  | - Contribution Workspace Lifecycle State Machine                  |  |
+|  +-------------------------------------------------------------------+  |
+|                                                                         |
+|  +-------------------------------------------------------------------+  |
+|  |                    Application Execution Module                   |  |
+|  | - Full Pipeline Kanban Tracking with Audit Trail                  |  |
+|  | - Structured Resume Versioning & Grounded Tailoring               |  |
+|  | - AI Application Documents (Cover Letters, GSoC Proposals)        |  |
+|  | - Interview Round Tracking & Q&A Generation Assistant            |  |
+|  +-------------------------------------------------------------------+  |
 +-------------------------------------------------------------------------+
                                      |
                                Spring Data JPA
                                      |
 +-------------------------------------------------------------------------+
 |                    Data Persistence (PostgreSQL 16)                     |
-|  - Flyway Migrations (V1 through V7)                                    |
+|  - Flyway Migrations (V1 through V9)                                    |
+|  - Applications: applications, application_activities                   |
+|  - Resumes & Documents: resumes, application_documents, interviews      |
+|  - GitHub: github_connections, repositories, issues, workspaces        |
 |  - Strategy: roadmaps, roadmap_milestones, roadmap_tasks                |
 |  - Resources: learning_resources, task_resources                        |
 |  - Matching: opportunity_matches (Dimensions & Factors)                 |
@@ -76,9 +97,20 @@ NEXUS is engineered as a high-performance **modular monolith** with clear domain
 +-------------------------------------------------------------------------+
 ```
 
-## 2. Core Modules & Phase 5 Capabilities
+## 2. Core Modules & Phase 6/7 Capabilities
 
-### 2.1 Strategy & Roadmap Engine (`com.nexus.roadmap`)
+### 2.1 GitHub Intelligence & Contributions (`com.nexus.github`)
+- **AES-256 Token Security**: Stores encrypted GitHub tokens via AES/GCM/NoPadding. Plaintext secrets are never persisted.
+- **Deterministic Issue Scoring**: Matches issue language, difficulty labels, and tech stack against candidate skills to calculate a bounded suitability score.
+- **Contribution Workspaces**: Manages open-source tasks through research, development, PR review, and merge states.
+
+### 2.2 Application Pipeline & Execution (`com.nexus.application`)
+- **Full-Lifecycle Tracking**: 9 pipeline states from `INTERESTED` to `OFFER_RECEIVED` with full audit activity logs (`ApplicationActivity`).
+- **Grounded Document & Proposal Generation**: Formats GSoC proposals and tailored cover letters grounded strictly in user experience without hallucinated facts.
+- **Structured Resume Tailoring**: Emphasizes skills and projects directly relevant to target opportunities.
+- **Interview & Assessment Logging**: Tracks OA challenges, technical rounds, interviewer notes, and candidate feedback.
+
+### 2.3 Strategy & Roadmap Engine (`com.nexus.roadmap`)
 - **Opportunity & Goal-Based Preparation**: Generates concrete milestone checklists tailored to missing required skills or custom career goals.
 - **Deterministic Scheduling Engine (`RoadmapSchedulingEngine`)**: Calculates milestone dates and task scheduled days based on user weekly hours budget, skipping weekends and pacing daily effort.
 - **Dynamic Progress Telemetry (`RoadmapProgressService`)**: Real-time calculation of milestone percentages, remaining estimated hours, and overdue tasks.

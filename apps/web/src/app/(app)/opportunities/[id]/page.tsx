@@ -23,6 +23,7 @@ import {
   ChevronRight,
   RefreshCw,
   Layers,
+  Briefcase,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import {
@@ -234,6 +235,13 @@ export default function OpportunityDetailsPage() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            <Link href={`/applications/new?opportunityId=${opportunity.id}`}>
+              <Button size="sm" className="font-mono text-xs">
+                <Briefcase className="mr-1.5 h-3.5 w-3.5" />
+                Track Application
+              </Button>
+            </Link>
+
             <Link href={`/roadmaps/new?opportunityId=${opportunity.id}`}>
               <Button variant="outline" size="sm" className="border-brand/40 text-brand hover:bg-brand/10">
                 <Sparkles className="mr-1.5 h-3.5 w-3.5 text-brand" />

@@ -84,6 +84,11 @@ public class Opportunity {
     public Opportunity() {
     }
 
+    public Opportunity(String title, String organization, String description, String category, String opportunityType) {
+        this(title, organization, description, category, opportunityType, "Remote", "GLOBAL", true,
+                "All", "[]", "[]", "https://nexus.dev", "https://nexus.dev", null, "ROLLING", null, null, "OPEN");
+    }
+
     public Opportunity(
             String title,
             String organization,

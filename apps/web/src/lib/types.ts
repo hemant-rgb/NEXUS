@@ -397,3 +397,263 @@ export interface UpdateTaskPayload {
   status?: TaskStatus;
   userNotes?: string;
 }
+
+// -------------------------------------------------------------
+// Phase 6: GitHub Intelligence & Open-Source Contributions
+// -------------------------------------------------------------
+
+export interface GitHubConnection {
+  id: string;
+  githubUsername: string;
+  avatarUrl?: string;
+  profileUrl?: string;
+  publicReposCount: number;
+  followersCount: number;
+  followingCount: number;
+  status: string;
+  connectedAt: string;
+  lastSyncedAt?: string;
+}
+
+export interface GitHubRepository {
+  id: string;
+  githubRepoId: number;
+  ownerLogin: string;
+  name: string;
+  fullName: string;
+  description?: string;
+  htmlUrl: string;
+  primaryLanguage?: string;
+  topics?: string;
+  starsCount: number;
+  forksCount: number;
+  openIssuesCount: number;
+  defaultBranch: string;
+  licenseSpdx?: string;
+  hasContributingGuide: boolean;
+  contributingUrl?: string;
+  lastPushedAt?: string;
+  isSaved?: boolean;
+}
+
+export interface GitHubIssue {
+  id: string;
+  githubIssueId: number;
+  repositoryId?: string;
+  repositoryFullName?: string;
+  primaryLanguage?: string;
+  issueNumber: number;
+  title: string;
+  body?: string;
+  htmlUrl: string;
+  state: string;
+  labels: string[];
+  commentsCount: number;
+  isGoodFirstIssue: boolean;
+  isHelpWanted: boolean;
+  githubCreatedAt?: string;
+  githubUpdatedAt?: string;
+  isSaved?: boolean;
+  suitabilityScore?: number;
+}
+
+export interface IssueSuitability {
+  issueId: string;
+  repositoryFullName: string;
+  suitabilityScore: number;
+  matchingSkills: string[];
+  missingSkills: string[];
+  experienceLevelSuitability: string;
+  difficultyAssessment: string;
+  reasoning: string[];
+}
+
+export type ContributionStatus =
+  | "INTERESTED"
+  | "RESEARCHING"
+  | "PLANNED"
+  | "IN_PROGRESS"
+  | "REVIEW_REQUESTED"
+  | "CHANGES_REQUESTED"
+  | "MERGED"
+  | "CLOSED"
+  | "ABANDONED";
+
+export interface ContributionWorkspace {
+  id: string;
+  repositoryId?: string;
+  repositoryFullName?: string;
+  issueId?: string;
+  issueNumber?: number;
+  issueTitle?: string;
+  issueHtmlUrl?: string;
+  roadmapTaskId?: string;
+  title: string;
+  status: ContributionStatus;
+  targetBranch: string;
+  pullRequestUrl?: string;
+  researchNotes?: string;
+  solutionPlan?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GitHubAiAnalysis {
+  targetType: "REPOSITORY" | "ISSUE";
+  targetName: string;
+  summary: string;
+  technicalOverview: string;
+  keyComponentsOrPrerequisites: string[];
+  suggestedSteps: string[];
+  testingGuidance: string;
+  warningsOrTips: string[];
+}
+
+// -------------------------------------------------------------
+// Phase 7: Application Management & Execution
+// -------------------------------------------------------------
+
+export type ApplicationStatus =
+  | "INTERESTED"
+  | "PREPARING"
+  | "READY_TO_APPLY"
+  | "APPLIED"
+  | "ASSESSMENT"
+  | "INTERVIEW"
+  | "OFFER_RECEIVED"
+  | "REJECTED"
+  | "WITHDRAWN"
+  | "ACCEPTED";
+
+export type ApplicationPriority = "HIGH" | "MEDIUM" | "LOW";
+
+export type ActivityType =
+  | "STATUS_CHANGED"
+  | "NOTE_ADDED"
+  | "DOCUMENT_ATTACHED"
+  | "INTERVIEW_SCHEDULED"
+  | "SUBMITTED"
+  | "DEADLINE_UPDATED";
+
+export type DocumentType =
+  | "COVER_LETTER"
+  | "GSOC_PROPOSAL"
+  | "MOTIVATION_STATEMENT"
+  | "APPLICATION_ESSAY"
+  | "APPLICATION_ANSWERS";
+
+export type InterviewStageType =
+  | "ONLINE_ASSESSMENT"
+  | "CODING_ROUND"
+  | "TECHNICAL_INTERVIEW"
+  | "HR_INTERVIEW"
+  | "PROJECT_DISCUSSION"
+  | "TAKE_HOME";
+
+export type InterviewStatus =
+  | "SCHEDULED"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "PASSED"
+  | "FAILED";
+
+export interface Application {
+  id: string;
+  userId: string;
+  opportunityId?: string;
+  opportunityTitle?: string;
+  roadmapId?: string;
+  roadmapTitle?: string;
+  title: string;
+  organization: string;
+  applicationType: string;
+  applicationUrl?: string;
+  status: ApplicationStatus;
+  priority: ApplicationPriority;
+  deadline?: string;
+  appliedAt?: string;
+  expectedResponseDate?: string;
+  userNotes?: string;
+  activitiesCount: number;
+  documentsCount: number;
+  interviewsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApplicationActivity {
+  id: string;
+  applicationId: string;
+  activityType: ActivityType;
+  fromStatus?: string;
+  toStatus?: string;
+  description: string;
+  createdAt: string;
+}
+
+export interface Resume {
+  id: string;
+  userId: string;
+  title: string;
+  versionName: string;
+  targetOpportunityId?: string;
+  targetOpportunityTitle?: string;
+  professionalSummary?: string;
+  educationJson?: string;
+  skillsJson?: string;
+  experienceJson?: string;
+  projectsJson?: string;
+  contributionsJson?: string;
+  isPrimary: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApplicationDocument {
+  id: string;
+  applicationId: string;
+  documentType: DocumentType;
+  title: string;
+  content: string;
+  structuredSections?: string;
+  version: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApplicationInterview {
+  id: string;
+  applicationId: string;
+  stageType: InterviewStageType;
+  scheduledAt?: string;
+  durationMinutes: number;
+  interviewerInfo?: string;
+  meetingLink?: string;
+  preparationNotes?: string;
+  status: InterviewStatus;
+  outcomeNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApplicationAnalytics {
+  totalApplications: number;
+  preparingCount: number;
+  appliedCount: number;
+  inProgressCount: number;
+  interviewCount: number;
+  offerCount: number;
+  rejectedCount: number;
+  interviewRate: number;
+  offerRate: number;
+  upcomingDeadlinesCount: number;
+  statusBreakdown: Record<string, number>;
+}
+
+export interface ApplicationQuestionResponse {
+  question: string;
+  suggestedAnswer: string;
+  keyTalkingPoints: string[];
+  advisoryNotice: string;
+}
+

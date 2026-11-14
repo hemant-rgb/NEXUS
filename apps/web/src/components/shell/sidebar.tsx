@@ -32,12 +32,12 @@ const NAV_ITEMS: NavItem[] = [
   { name: "Discover", href: "/opportunities", icon: Compass, status: "active" },
   { name: "Recommended", href: "/recommendations", icon: Sparkles, status: "active" },
   { name: "Saved", href: "/saved", icon: Bookmark, status: "active" },
-  { name: "Profile", href: "/profile", icon: UserIcon, status: "active" },
-  { name: "Skills", href: "/skills", icon: Cpu, status: "active" },
-  { name: "Settings", href: "/settings", icon: Settings, status: "active" },
-  { name: "My Applications", href: "#", icon: Briefcase, status: "coming-soon" },
+  { name: "Applications", href: "/applications", icon: Briefcase, status: "active" },
+  { name: "GitHub OS", href: "/github", icon: GitBranch, status: "active" },
   { name: "Roadmaps", href: "/roadmaps", icon: Map, status: "active" },
-  { name: "GitHub", href: "#", icon: GitBranch, status: "coming-soon" },
+  { name: "Skills", href: "/skills", icon: Cpu, status: "active" },
+  { name: "Profile", href: "/profile", icon: UserIcon, status: "active" },
+  { name: "Settings", href: "/settings", icon: Settings, status: "active" },
   { name: "Activity", href: "#", icon: Activity, status: "coming-soon" },
 ];
 

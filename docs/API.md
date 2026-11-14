@@ -450,3 +450,143 @@ Attaches a catalog resource or custom external link to a task.
 Searches curated, verified learning resources by skill or keyword.
 - **Responses:**
   - `200 OK`: Array of `LearningResourceResponse`.
+
+---
+
+## 11. GitHub Intelligence & Open-Source Engine (`/github`)
+
+### `GET /github/connection`
+Retrieves connection status and profile intelligence for the user's connected GitHub account.
+- **Responses:**
+  - `200 OK`: `GitHubConnectionResponse` (username, avatar, repos, followers, public contributions).
+
+### `POST /github/connect`
+Connects a GitHub account using an OAuth or Personal Access Token (PAT). Token is encrypted using AES-256-GCM.
+- **Request Body (`ConnectGitHubRequest`):**
+  ```json
+  {
+    "accessToken": "ghp_...",
+    "githubUsername": "octocat"
+  }
+  ```
+- **Responses:**
+  - `200 OK`: `GitHubConnectionResponse`.
+
+### `DELETE /github/disconnect`
+Revokes connection and cryptographically shreds stored token.
+- **Responses:**
+  - `200 OK`: Confirmation message.
+
+### `GET /github/repos`
+Fetches curated and tracked open-source repositories.
+- **Query Parameters:** `language`, `topic`, `page`, `size`
+- **Responses:**
+  - `200 OK`: Paginated `GitHubRepoResponse` array.
+
+### `GET /github/issues`
+Fetches open-source contribution issues with personalized suitability scores.
+- **Query Parameters:** `language`, `label`, `isGoodFirstIssue`, `page`, `size`
+- **Responses:**
+  - `200 OK`: Paginated `GitHubIssueResponse` array with suitability scores ($0.0 - 100.0$) and match explanations.
+
+### `POST /github/issues/{id}/suitability`
+Calculates real-time deterministic suitability score for an issue against user's skills.
+- **Responses:**
+  - `200 OK`: `IssueSuitabilityResponse`.
+
+### `GET /github/workspaces`
+Retrieves all active contribution workspaces for the authenticated user.
+- **Responses:**
+  - `200 OK`: Array of `ContributionWorkspaceResponse`.
+
+### `POST /github/workspaces`
+Creates a contribution workspace linked to a GitHub issue.
+- **Request Body (`ContributionWorkspaceRequest`):**
+  ```json
+  {
+    "issueId": "c0000000-0000-0000-0000-000000000001",
+    "status": "RESEARCHING",
+    "notes": "Exploring repository architecture."
+  }
+  ```
+- **Responses:**
+  - `201 Created`: `ContributionWorkspaceResponse`.
+
+---
+
+## 12. Application Management & Pipeline (`/applications`, `/resumes`)
+
+### `GET /applications`
+Retrieves all tracked applications for the user.
+- **Query Parameters:** `status`, `priority`, `page`, `size`
+- **Responses:**
+  - `200 OK`: Paginated `ApplicationResponse` array.
+
+### `POST /applications`
+Creates a tracked application (optionally linked to a discovered opportunity or roadmap).
+- **Request Body (`CreateApplicationRequest`):**
+  ```json
+  {
+    "opportunityId": "c0000000-0000-0000-0000-000000000001",
+    "companyName": "Acme Corp",
+    "jobTitle": "Backend Engineering Intern",
+    "priority": "HIGH",
+    "applicationDeadline": "2027-01-15T23:59:59Z",
+    "targetUrl": "https://careers.acme.corp/apply/123"
+  }
+  ```
+- **Responses:**
+  - `201 Created`: `ApplicationResponse`.
+
+### `GET /applications/{id}`
+Retrieves application details, linked documents, interviews, and timeline activity audit logs.
+- **Responses:**
+  - `200 OK`: Complete `ApplicationResponse`.
+
+### `PATCH /applications/{id}`
+Updates application status, priority, stage, notes, or target URL. Logs an `ApplicationActivity` event.
+- **Responses:**
+  - `200 OK`: Updated `ApplicationResponse`.
+
+### `DELETE /applications/{id}`
+Deletes an application and cascading records.
+- **Responses:**
+  - `200 OK`: Success message.
+
+### `GET /applications/analytics`
+Calculates pipeline metrics: active counts by status, success rate, interview rate.
+- **Responses:**
+  - `200 OK`: `ApplicationAnalyticsResponse`.
+
+### `GET /resumes`
+Retrieves all stored resume versions for the user.
+- **Responses:**
+  - `200 OK`: Array of `ResumeResponse`.
+
+### `POST /resumes`
+Creates a new structured resume.
+- **Responses:**
+  - `201 Created`: `ResumeResponse`.
+
+### `POST /resumes/{id}/tailor`
+Generates an opportunity-tailored resume variant grounded strictly in candidate experience.
+- **Request Body (`TailorResumeRequest`):** `opportunityId`, `targetRole`
+- **Responses:**
+  - `200 OK`: `ResumeResponse` with prioritized skill tags and tailored bullet points.
+
+### `POST /applications/{id}/documents/generate`
+Generates a grounded cover letter, GSoC proposal, or motivation essay.
+- **Request Body (`GenerateDocumentRequest`):** `documentType`, `opportunityId`, `specificFocus`
+- **Responses:**
+  - `201 Created`: `DocumentResponse`.
+
+### `POST /applications/{id}/questions/answer`
+Answers organization-specific application questions using candidate background.
+- **Request Body (`ApplicationQuestionRequest`):** `questionText`, `wordLimit`
+- **Responses:**
+  - `200 OK`: `ApplicationQuestionResponse`.
+
+### `POST /applications/{id}/interviews`
+Schedules an interview or online assessment round.
+- **Responses:**
+  - `201 Created`: `InterviewResponse`.
