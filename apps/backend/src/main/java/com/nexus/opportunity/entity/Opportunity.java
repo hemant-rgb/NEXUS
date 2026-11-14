@@ -63,8 +63,14 @@ public class Opportunity {
     @Column(name = "end_date")
     private LocalDate endDate;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "status", nullable = false, length = 50)
     private String status = "OPEN";
+
+    @Column(name = "canonical_url", columnDefinition = "TEXT")
+    private String canonicalUrl;
+
+    @Column(name = "first_discovered_at", nullable = false, updatable = false)
+    private Instant firstDiscoveredAt = Instant.now();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -286,6 +292,22 @@ public class Opportunity {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public String getCanonicalUrl() {
+        return canonicalUrl;
+    }
+
+    public void setCanonicalUrl(String canonicalUrl) {
+        this.canonicalUrl = canonicalUrl;
+    }
+
+    public Instant getFirstDiscoveredAt() {
+        return firstDiscoveredAt;
+    }
+
+    public void setFirstDiscoveredAt(Instant firstDiscoveredAt) {
+        this.firstDiscoveredAt = firstDiscoveredAt;
     }
 
     public void setCreatedAt(Instant createdAt) {

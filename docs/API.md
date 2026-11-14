@@ -300,3 +300,37 @@ Manually triggers ingestion and normalization synchronization for a specific sou
   - `200 OK`: `SyncResult` summary (records fetched, inserted, updated, skipped, failed).
   - `403 Forbidden`: Unauthorized user.
   - `404 Not Found`: Source key not recognized.
+
+### `GET /sources/{sourceKey}/runs`
+Retrieves the execution history and telemetry of ingestion runs for a source.
+- **Security:** Protected by `@PreAuthorize("hasRole('ADMIN')")`.
+- **Responses:**
+  - `200 OK`: Array of `SyncRunResponse` items:
+  ```json
+  [
+    {
+      "id": "e7349cbd-095e-4b06-a76f-f9c28fd93511",
+      "sourceKey": "remotive-tech",
+      "sourceName": "Remotive Software Careers",
+      "syncType": "SCHEDULED",
+      "status": "SUCCESS",
+      "startedAt": "2026-11-14T12:00:00Z",
+      "completedAt": "2026-11-14T12:00:03Z",
+      "recordsFetched": 25,
+      "recordsCreated": 18,
+      "recordsUpdated": 7,
+      "recordsSkipped": 0,
+      "duplicatesDetected": 0,
+      "errorMessage": null
+    }
+  ]
+  ```
+
+### `PATCH /sources/{sourceKey}/status`
+Enables or disables an opportunity ingestion source.
+- **Security:** Protected by `@PreAuthorize("hasRole('ADMIN')")`.
+- **Query / Body Parameters:** `enabled=true|false`
+- **Responses:**
+  - `200 OK`: Updated source object with new status.
+  - `403 Forbidden`: Unauthorized user.
+  - `404 Not Found`: Source key not recognized.

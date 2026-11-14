@@ -30,6 +30,12 @@ public class OpportunitySource {
     @Column(name = "last_successful_sync_at")
     private Instant lastSuccessfulSyncAt;
 
+    @Column(name = "last_sync_status", nullable = false, length = 50)
+    private String lastSyncStatus = "IDLE";
+
+    @Column(name = "total_records_synced", nullable = false)
+    private int totalRecordsSynced = 0;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -110,6 +116,22 @@ public class OpportunitySource {
 
     public Instant getLastSuccessfulSyncAt() {
         return lastSuccessfulSyncAt;
+    }
+
+    public String getLastSyncStatus() {
+        return lastSyncStatus;
+    }
+
+    public void setLastSyncStatus(String lastSyncStatus) {
+        this.lastSyncStatus = lastSyncStatus != null ? lastSyncStatus : "IDLE";
+    }
+
+    public int getTotalRecordsSynced() {
+        return totalRecordsSynced;
+    }
+
+    public void setTotalRecordsSynced(int totalRecordsSynced) {
+        this.totalRecordsSynced = totalRecordsSynced;
     }
 
     public void setLastSuccessfulSyncAt(Instant lastSuccessfulSyncAt) {

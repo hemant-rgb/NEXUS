@@ -11,8 +11,10 @@ import com.nexus.source.connector.SyncRequest;
 import com.nexus.source.connector.SyncResult;
 import com.nexus.source.entity.OpportunityListing;
 import com.nexus.source.entity.OpportunitySource;
+import com.nexus.source.entity.SyncRun;
 import com.nexus.source.repository.OpportunityListingRepository;
 import com.nexus.source.repository.OpportunitySourceRepository;
+import com.nexus.source.repository.SyncRunRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,6 +33,8 @@ public class DiscoverySyncService {
     private final OpportunitySourceRepository sourceRepository;
     private final OpportunityRepository opportunityRepository;
     private final OpportunityListingRepository listingRepository;
+    private final SyncRunRepository syncRunRepository;
+    private final OpportunityNormalizer normalizer;
     private final ObjectMapper objectMapper;
 
     public DiscoverySyncService(
@@ -38,6 +42,8 @@ public class DiscoverySyncService {
             OpportunitySourceRepository sourceRepository,
             OpportunityRepository opportunityRepository,
             OpportunityListingRepository listingRepository,
+            SyncRunRepository syncRunRepository,
+            OpportunityNormalizer normalizer,
             ObjectMapper objectMapper) {
         for (OpportunitySourceConnector connector : connectors) {
             this.connectorMap.put(connector.getSourceKey(), connector);
@@ -45,11 +51,25 @@ public class DiscoverySyncService {
         this.sourceRepository = sourceRepository;
         this.opportunityRepository = opportunityRepository;
         this.listingRepository = listingRepository;
+        this.syncRunRepository = syncRunRepository;
+        this.normalizer = normalizer;
         this.objectMapper = objectMapper;
+    }
+
+    public enum IngestAction {
+        CREATED,
+        UPDATED,
+        DUPLICATE_LINKED,
+        SKIPPED
     }
 
     @Transactional
     public SyncResult syncSource(String sourceKey) {
+        return syncSource(sourceKey, "MANUAL");
+    }
+
+    @Transactional
+    public SyncResult syncSource(String sourceKey, String syncType) {
         OpportunitySource source = sourceRepository.findBySourceKey(sourceKey)
                 .orElseThrow(() -> new ResourceNotFoundException("Opportunity source not found for key: " + sourceKey));
 
@@ -62,29 +82,64 @@ public class DiscoverySyncService {
             return SyncResult.failure(sourceKey, "No registered connector found for source key: " + sourceKey);
         }
 
-        log.info("Starting synchronization for source: {}", sourceKey);
+        SyncRun run = new SyncRun(source, syncType);
+        run = syncRunRepository.save(run);
+        source.setLastSyncStatus("IN_PROGRESS");
+        sourceRepository.save(source);
+
+        log.info("Starting synchronization for source '{}' (Run ID: {})", sourceKey, run.getId());
         SyncResult result;
         try {
             result = connector.fetchOpportunities(SyncRequest.full());
         } catch (Exception e) {
             log.error("Connector execution failed for {}: {}", sourceKey, e.getMessage(), e);
+            run.fail("Connector execution error: " + e.getMessage(), 0);
+            source.setLastSyncStatus("ERROR");
+            sourceRepository.save(source);
+            syncRunRepository.save(run);
             return SyncResult.failure(sourceKey, "Connector error: " + e.getMessage());
         }
 
         if (!result.success()) {
             log.warn("Synchronization failed for {}: {}", sourceKey, result.errorMessage());
+            run.fail(result.errorMessage(), 0);
+            source.setLastSyncStatus("ERROR");
+            sourceRepository.save(source);
+            syncRunRepository.save(run);
             return result;
         }
 
-        int processed = 0;
+        int created = 0;
+        int updated = 0;
+        int skipped = 0;
+        int duplicates = 0;
+
         for (NormalizedOpportunity item : result.opportunities()) {
-            upsertOpportunity(source, item);
-            processed++;
+            // Field validation guardrail
+            if (item.title() == null || item.title().isBlank() ||
+                item.organization() == null || item.organization().isBlank()) {
+                skipped++;
+                continue;
+            }
+
+            IngestAction action = upsertOpportunity(source, item);
+            switch (action) {
+                case CREATED -> created++;
+                case UPDATED -> updated++;
+                case DUPLICATE_LINKED -> duplicates++;
+                case SKIPPED -> skipped++;
+            }
         }
 
+        run.complete(result.totalFetched(), created, updated, skipped, duplicates);
         source.setLastSuccessfulSyncAt(Instant.now());
+        source.setLastSyncStatus("HEALTHY");
+        source.setTotalRecordsSynced(source.getTotalRecordsSynced() + created);
         sourceRepository.save(source);
-        log.info("Successfully synced {} opportunities from {}", processed, sourceKey);
+        syncRunRepository.save(run);
+
+        log.info("Finished sync for {}: fetched={}, created={}, updated={}, duplicates={}, skipped={}",
+                sourceKey, result.totalFetched(), created, updated, duplicates, skipped);
 
         return SyncResult.success(sourceKey, result.opportunities());
     }
@@ -94,7 +149,12 @@ public class DiscoverySyncService {
         List<OpportunitySource> enabledSources = sourceRepository.findAllByEnabledTrue();
         Map<String, SyncResult> resultMap = new HashMap<>();
         for (OpportunitySource source : enabledSources) {
-            resultMap.put(source.getSourceKey(), syncSource(source.getSourceKey()));
+            try {
+                resultMap.put(source.getSourceKey(), syncSource(source.getSourceKey(), "SCHEDULED"));
+            } catch (Exception e) {
+                log.error("Failed synchronizing source {}: {}", source.getSourceKey(), e.getMessage());
+                resultMap.put(source.getSourceKey(), SyncResult.failure(source.getSourceKey(), e.getMessage()));
+            }
         }
         return resultMap;
     }
@@ -108,7 +168,10 @@ public class DiscoverySyncService {
         syncAllEnabledSources();
     }
 
-    private void upsertOpportunity(OpportunitySource source, NormalizedOpportunity item) {
+    private IngestAction upsertOpportunity(OpportunitySource source, NormalizedOpportunity item) {
+        String canonicalUrl = normalizer.canonicalizeUrl(item.applicationUrl());
+
+        // Tier 1: Match by exact source provenance (sourceId + externalId)
         Optional<OpportunityListing> existingListing = listingRepository.findBySourceIdAndExternalId(
                 source.getId(),
                 item.externalId()
@@ -118,44 +181,29 @@ public class DiscoverySyncService {
         if (existingListing.isPresent()) {
             OpportunityListing listing = existingListing.get();
             opportunity = listing.getOpportunity();
-            updateOpportunityFields(opportunity, item);
+            updateOpportunityFields(opportunity, item, canonicalUrl);
             listing.setLastSeenAt(Instant.now());
             listing.setOriginalUrl(item.applicationUrl());
             listingRepository.save(listing);
-        } else {
-            // Check for duplicate opportunity by title & organization
-            Optional<Opportunity> existingOpp = opportunityRepository.findByTitleIgnoreCaseAndOrganizationIgnoreCase(
-                    item.title().trim(),
-                    item.organization().trim()
-            );
+            return IngestAction.UPDATED;
+        }
 
-            if (existingOpp.isPresent()) {
-                opportunity = existingOpp.get();
-                updateOpportunityFields(opportunity, item);
-            } else {
-                opportunity = new Opportunity(
-                        item.title(),
-                        item.organization(),
-                        item.description(),
-                        item.category(),
-                        item.opportunityType(),
-                        item.location(),
-                        item.countryCode(),
-                        item.remoteAvailable(),
-                        item.eligibilityCriteria(),
-                        toJsonString(item.requiredSkills()),
-                        toJsonString(item.preferredSkills()),
-                        item.applicationUrl(),
-                        item.officialWebsiteUrl(),
-                        item.deadline(),
-                        item.deadlineType(),
-                        item.startDate(),
-                        item.endDate(),
-                        item.status()
-                );
-            }
-            opportunity = opportunityRepository.save(opportunity);
+        // Tier 2: Match by canonical application URL across sources
+        Optional<Opportunity> existingByUrl = Optional.empty();
+        if (canonicalUrl != null && !canonicalUrl.isBlank()) {
+            existingByUrl = opportunityRepository.findByCanonicalUrl(canonicalUrl);
+        }
 
+        // Tier 3: Match by title & organization (case-insensitive)
+        Optional<Opportunity> existingByName = existingByUrl.isEmpty()
+                ? opportunityRepository.findByTitleIgnoreCaseAndOrganizationIgnoreCase(item.title().trim(), item.organization().trim())
+                : Optional.empty();
+
+        if (existingByUrl.isPresent() || existingByName.isPresent()) {
+            opportunity = existingByUrl.orElseGet(existingByName::get);
+            updateOpportunityFields(opportunity, item, canonicalUrl);
+
+            // Link new source listing to existing canonical opportunity
             OpportunityListing newListing = new OpportunityListing(
                     opportunity,
                     source,
@@ -164,11 +212,50 @@ public class DiscoverySyncService {
                     item.rawMetadata()
             );
             listingRepository.save(newListing);
+            return IngestAction.DUPLICATE_LINKED;
         }
+
+        // Tier 4: Insert new canonical opportunity
+        opportunity = new Opportunity(
+                item.title().trim(),
+                item.organization().trim(),
+                normalizer.sanitizeText(item.description()),
+                item.category(),
+                item.opportunityType(),
+                item.location(),
+                item.countryCode(),
+                item.remoteAvailable(),
+                item.eligibilityCriteria(),
+                toJsonString(item.requiredSkills()),
+                toJsonString(item.preferredSkills()),
+                item.applicationUrl(),
+                item.officialWebsiteUrl(),
+                item.deadline(),
+                item.deadlineType(),
+                item.startDate(),
+                item.endDate(),
+                item.status()
+        );
+        opportunity.setCanonicalUrl(canonicalUrl);
+        opportunity.setFirstDiscoveredAt(Instant.now());
+        opportunity.setLastVerifiedAt(Instant.now());
+
+        opportunity = opportunityRepository.save(opportunity);
+
+        OpportunityListing newListing = new OpportunityListing(
+                opportunity,
+                source,
+                item.externalId(),
+                item.applicationUrl(),
+                item.rawMetadata()
+        );
+        listingRepository.save(newListing);
+
+        return IngestAction.CREATED;
     }
 
-    private void updateOpportunityFields(Opportunity opp, NormalizedOpportunity item) {
-        opp.setDescription(item.description());
+    private void updateOpportunityFields(Opportunity opp, NormalizedOpportunity item, String canonicalUrl) {
+        opp.setDescription(normalizer.sanitizeText(item.description()));
         opp.setCategory(item.category());
         opp.setOpportunityType(item.opportunityType());
         opp.setLocation(item.location());
@@ -178,6 +265,9 @@ public class DiscoverySyncService {
         opp.setRequiredSkills(toJsonString(item.requiredSkills()));
         opp.setPreferredSkills(toJsonString(item.preferredSkills()));
         opp.setApplicationUrl(item.applicationUrl());
+        if (canonicalUrl != null) {
+            opp.setCanonicalUrl(canonicalUrl);
+        }
         opp.setOfficialWebsiteUrl(item.officialWebsiteUrl());
         opp.setDeadline(item.deadline());
         opp.setDeadlineType(item.deadlineType());

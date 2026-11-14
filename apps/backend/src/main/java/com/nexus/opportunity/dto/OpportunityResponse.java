@@ -27,6 +27,35 @@ public record OpportunityResponse(
         String status,
         Instant createdAt,
         Instant lastVerifiedAt,
-        Boolean isSaved
+        Boolean isSaved,
+        String sourceName
 ) {
+    public OpportunityResponse(
+            UUID id,
+            String title,
+            String organization,
+            String description,
+            String category,
+            String opportunityType,
+            String location,
+            String countryCode,
+            boolean remoteAvailable,
+            String eligibilityCriteria,
+            List<String> requiredSkills,
+            List<String> preferredSkills,
+            String applicationUrl,
+            String officialWebsiteUrl,
+            LocalDate deadline,
+            String deadlineType,
+            LocalDate startDate,
+            LocalDate endDate,
+            String status,
+            Instant createdAt,
+            Instant lastVerifiedAt,
+            Boolean isSaved) {
+        this(id, title, organization, description, category, opportunityType, location, countryCode,
+                remoteAvailable, eligibilityCriteria, requiredSkills, preferredSkills, applicationUrl,
+                officialWebsiteUrl, deadline, deadlineType, startDate, endDate, status, createdAt,
+                lastVerifiedAt, isSaved, null);
+    }
 }

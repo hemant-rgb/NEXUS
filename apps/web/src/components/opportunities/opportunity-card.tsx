@@ -85,6 +85,11 @@ export function OpportunityCard({
         {/* Badges: Category & Remote/Location */}
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge variant="cyan">{opportunity.category}</Badge>
+          {opportunity.sourceName && (
+            <Badge variant="outline" className="border-brand/30 text-brand bg-brand/5">
+              <ShieldCheck className="h-2.5 w-2.5 mr-0.5 inline" /> {opportunity.sourceName}
+            </Badge>
+          )}
           {opportunity.remoteAvailable ? (
             <Badge variant="brand">Remote</Badge>
           ) : (
@@ -128,11 +133,18 @@ export function OpportunityCard({
 
         {/* Footer info: Deadline & Actions */}
         <div className="flex items-center justify-between text-xs font-mono pt-1">
-          <div className="flex items-center gap-1.5 text-text-muted">
-            <Calendar className="h-3.5 w-3.5" />
-            <span className={isDeadlineSoon ? "text-warning font-medium" : ""}>
-              {opportunity.deadline ? opportunity.deadline : "No deadline"}
-            </span>
+          <div className="flex flex-col gap-0.5 text-text-muted">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5" />
+              <span className={isDeadlineSoon ? "text-warning font-medium" : ""}>
+                {opportunity.deadline ? opportunity.deadline : "No deadline"}
+              </span>
+            </div>
+            {opportunity.lastVerifiedAt && (
+              <span className="text-[10px] text-text-muted/80">
+                Verified: {new Date(opportunity.lastVerifiedAt).toLocaleDateString()}
+              </span>
+            )}
           </div>
 
           <Link href={`/opportunities/${opportunity.id}`}>

@@ -10,6 +10,8 @@ public record SourceResponse(
         String sourceType,
         String baseUrl,
         boolean enabled,
-        Instant lastSuccessfulSyncAt
+        Instant lastSuccessfulSyncAt,
+        String lastSyncStatus,
+        int totalRecordsSynced
 ) {
 }

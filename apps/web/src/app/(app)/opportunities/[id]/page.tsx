@@ -307,9 +307,16 @@ export default function OpportunityDetailsPage() {
             </span>
             <div className="space-y-2">
               <div>
-                <span className="block text-[10px] text-text-muted">Verified Date:</span>
+                <span className="block text-[10px] text-text-muted">Ingestion Source:</span>
+                <span className="text-text-primary font-medium flex items-center gap-1 mt-0.5">
+                  <ShieldCheck className="h-3.5 w-3.5 text-brand" />
+                  {opportunity.sourceName || "NEXUS Verified Index"}
+                </span>
+              </div>
+              <div>
+                <span className="block text-[10px] text-text-muted">Last Verified:</span>
                 <span className="text-text-secondary">
-                  {new Date(opportunity.lastVerifiedAt).toLocaleDateString()}
+                  {new Date(opportunity.lastVerifiedAt).toLocaleString()}
                 </span>
               </div>
               <div>
@@ -323,6 +330,14 @@ export default function OpportunityDetailsPage() {
                   {opportunity.applicationUrl}
                 </a>
               </div>
+              {opportunity.canonicalUrl && opportunity.canonicalUrl !== opportunity.applicationUrl && (
+                <div>
+                  <span className="block text-[10px] text-text-muted">Canonical Identifier:</span>
+                  <span className="text-text-muted text-[10px] truncate block font-mono">
+                    {opportunity.canonicalUrl}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="pt-3 border-t border-surface-border/60 text-[11px] font-sans text-text-muted leading-normal">

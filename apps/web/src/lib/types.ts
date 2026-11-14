@@ -79,6 +79,8 @@ export interface Opportunity {
   status: "OPEN" | "UPCOMING" | "CLOSED" | "ARCHIVED";
   createdAt: string;
   lastVerifiedAt: string;
+  sourceName?: string;
+  canonicalUrl?: string;
   isSaved?: boolean;
 }
 
@@ -103,6 +105,24 @@ export interface OpportunitySourceItem {
   baseUrl: string;
   enabled: boolean;
   lastSuccessfulSyncAt?: string;
+  lastSyncStatus?: string;
+  totalRecordsSynced?: number;
+}
+
+export interface SyncRunResponse {
+  id: string;
+  sourceKey: string;
+  sourceName: string;
+  syncType: string;
+  status: "SUCCESS" | "FAILED" | "IN_PROGRESS";
+  startedAt: string;
+  completedAt?: string;
+  recordsFetched: number;
+  recordsCreated: number;
+  recordsUpdated: number;
+  recordsSkipped: number;
+  duplicatesDetected: number;
+  errorMessage?: string;
 }
 
 export interface PageResponse<T> {

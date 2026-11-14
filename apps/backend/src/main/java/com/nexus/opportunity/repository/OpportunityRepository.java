@@ -18,6 +18,8 @@ public interface OpportunityRepository extends JpaRepository<Opportunity, UUID>,
 
     Optional<Opportunity> findByTitleIgnoreCaseAndOrganizationIgnoreCase(String title, String organization);
 
+    Optional<Opportunity> findByCanonicalUrl(String canonicalUrl);
+
     @Query("SELECT o FROM Opportunity o WHERE o.status = 'OPEN' ORDER BY o.createdAt DESC")
     List<Opportunity> findFeatured(Pageable pageable);
 

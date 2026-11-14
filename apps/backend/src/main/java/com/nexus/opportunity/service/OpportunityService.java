@@ -9,7 +9,9 @@ import com.nexus.opportunity.dto.OpportunityResponse;
 import com.nexus.opportunity.entity.Opportunity;
 import com.nexus.opportunity.repository.OpportunityRepository;
 import com.nexus.opportunity.repository.SavedOpportunityRepository;
+import com.nexus.source.repository.OpportunityListingRepository;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,14 +28,25 @@ public class OpportunityService {
 
     private final OpportunityRepository opportunityRepository;
     private final SavedOpportunityRepository savedOpportunityRepository;
+    private final OpportunityListingRepository listingRepository;
     private final ObjectMapper objectMapper;
 
     public OpportunityService(
             OpportunityRepository opportunityRepository,
             SavedOpportunityRepository savedOpportunityRepository,
             ObjectMapper objectMapper) {
+        this(opportunityRepository, savedOpportunityRepository, null, objectMapper);
+    }
+
+    @Autowired
+    public OpportunityService(
+            OpportunityRepository opportunityRepository,
+            SavedOpportunityRepository savedOpportunityRepository,
+            OpportunityListingRepository listingRepository,
+            ObjectMapper objectMapper) {
         this.opportunityRepository = opportunityRepository;
         this.savedOpportunityRepository = savedOpportunityRepository;
+        this.listingRepository = listingRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -143,6 +156,16 @@ public class OpportunityService {
     }
 
     public OpportunityResponse mapToResponse(Opportunity opp, Boolean isSaved) {
+        String sourceName = null;
+        if (listingRepository != null) {
+            try {
+                var listings = listingRepository.findByOpportunityId(opp.getId());
+                if (listings != null && !listings.isEmpty() && listings.get(0).getSource() != null) {
+                    sourceName = listings.get(0).getSource().getName();
+                }
+            } catch (Exception ignored) {}
+        }
+
         return new OpportunityResponse(
                 opp.getId(),
                 opp.getTitle(),
@@ -165,7 +188,8 @@ public class OpportunityService {
                 opp.getStatus(),
                 opp.getCreatedAt(),
                 opp.getLastVerifiedAt(),
-                isSaved
+                isSaved,
+                sourceName
         );
     }
 

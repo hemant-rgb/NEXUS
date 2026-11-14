@@ -3,6 +3,7 @@ package com.nexus.source.controller;
 import com.nexus.common.dto.ApiResponse;
 import com.nexus.source.connector.SyncResult;
 import com.nexus.source.dto.SourceResponse;
+import com.nexus.source.dto.SyncRunResponse;
 import com.nexus.source.service.SourceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,5 +37,23 @@ public class SourceController {
     public ResponseEntity<ApiResponse<SyncResult>> syncSource(@PathVariable("sourceKey") String sourceKey) {
         SyncResult result = sourceService.syncSource(sourceKey);
         return ResponseEntity.ok(ApiResponse.success("Sync executed", result));
+    }
+
+    @GetMapping("/{sourceKey}/runs")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get recent synchronization run history for a source (Admin Only)")
+    public ResponseEntity<ApiResponse<List<SyncRunResponse>>> getSourceRuns(@PathVariable("sourceKey") String sourceKey) {
+        List<SyncRunResponse> runs = sourceService.getSourceRuns(sourceKey);
+        return ResponseEntity.ok(ApiResponse.success(runs));
+    }
+
+    @PatchMapping("/{sourceKey}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Enable or disable an external opportunity source (Admin Only)")
+    public ResponseEntity<ApiResponse<SourceResponse>> updateSourceStatus(
+            @PathVariable("sourceKey") String sourceKey,
+            @RequestParam("enabled") boolean enabled) {
+        SourceResponse updated = sourceService.updateSourceStatus(sourceKey, enabled);
+        return ResponseEntity.ok(ApiResponse.success("Source status updated", updated));
     }
 }

@@ -23,9 +23,10 @@ DISCOVER → UNDERSTAND → MATCH → PREPARE → EXECUTE → TRACK
 
 ### Module Status
 - **Phase 1 (Completed)**: Engineering Foundation, Authentication, Developer Onboarding Wizard, Technical Skills Matrix, and Command Center Shell.
-- **Phase 2 (Completed)**: Opportunity Management & Discovery Engine (NEXUS Scout). 8 opportunity categories, provider-independent connector architecture, deduplication, scheduled ingestion, search & filtering, saved opportunities with developer notes, and high-density technical UI.
-- **Phase 3 (Upcoming)**: NEXUS Strategy (Personalized Roadmaps) & NEXUS Execution (GitHub Contribution Assistant).
-- **Phase 4 (Upcoming)**: NEXUS Pulse (Deadline Telemetry Monitor).
+- **Phase 2 (Completed)**: Opportunity Management & Discovery Engine (NEXUS Scout). 8 opportunity categories, provider-independent connector architecture, deduplication, search & filtering, saved opportunities with developer notes, and high-density technical UI.
+- **Phase 3 (Completed)**: Real-World Opportunity Source Integrations & Automated Data Ingestion. Active external connectors (Remotive, Arbeitnow, GSoC dataset), SSRF-guarded HTTP client, dual-tier entity resolution, sync telemetry runs, and data provenance UI badges.
+- **Phase 4 (Upcoming)**: NEXUS Strategy (Personalized Roadmaps) & NEXUS Execution (GitHub Contribution Assistant).
+- **Phase 5 (Upcoming)**: NEXUS Pulse (Deadline Telemetry Monitor).
 
 ---
 
@@ -74,7 +75,7 @@ Open `http://localhost:3000` in your browser.
 ---
 
 ## Documentation Links
-- [Phase 2 Release Notes](docs/RELEASE_PHASE_2.md)
+- [Opportunity Sources & Ingestion Specification](docs/SOURCES.md)
 - [System Architecture](docs/ARCHITECTURE.md)
 - [Database Schema & Migrations](docs/DATABASE.md)
 - [REST API Contracts](docs/API.md)

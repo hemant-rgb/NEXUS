@@ -6,6 +6,7 @@ import {
   PageResponse,
   SavedOpportunity,
   Skill,
+  SyncRunResponse,
   User,
   UserPreferences,
   UserProfile,
@@ -162,6 +163,10 @@ export const api = {
   sources: {
     list: () =>
       request<OpportunitySourceItem[]>("/sources", { method: "GET" }),
+    getRuns: (sourceKey: string) =>
+      request<SyncRunResponse[]>(`/sources/${sourceKey}/runs`, { method: "GET" }),
+    triggerSync: (sourceKey: string) =>
+      request<any>(`/sources/${sourceKey}/sync`, { method: "POST" }),
   },
 };
 
