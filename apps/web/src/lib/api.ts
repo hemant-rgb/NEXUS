@@ -593,6 +593,11 @@ export const api = {
         body: JSON.stringify({ reason }),
       }),
   },
+
+  ai: {
+    getStatus: () =>
+      request<Record<string, unknown>>("/ai/status", { method: "GET" }),
+  },
 };
 
 export { ApiError };

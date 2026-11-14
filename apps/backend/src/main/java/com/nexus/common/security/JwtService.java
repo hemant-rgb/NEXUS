@@ -21,14 +21,28 @@ public class JwtService {
     private final SecretKey key;
     private final long expirationMs;
     private final String cookieName;
+    private final boolean cookieSecure;
+    private final String sameSite;
 
+    public JwtService(
+            String secret,
+            long expirationMs,
+            String cookieName) {
+        this(secret, expirationMs, cookieName, false, "Lax");
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
     public JwtService(
             @Value("${nexus.jwt.secret}") String secret,
             @Value("${nexus.jwt.expiration-ms:86400000}") long expirationMs,
-            @Value("${nexus.jwt.cookie-name:nexus_session}") String cookieName) {
+            @Value("${nexus.jwt.cookie-name:nexus_session}") String cookieName,
+            @Value("${nexus.jwt.cookie-secure:false}") boolean cookieSecure,
+            @Value("${nexus.jwt.cookie-same-site:Lax}") String sameSite) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expirationMs = expirationMs;
         this.cookieName = cookieName;
+        this.cookieSecure = cookieSecure;
+        this.sameSite = sameSite;
     }
 
     public String generateToken(UUID userId, String email, String role) {
@@ -48,8 +62,8 @@ public class JwtService {
     public ResponseCookie createSessionCookie(String token) {
         return ResponseCookie.from(cookieName, token)
                 .httpOnly(true)
-                .secure(false) // Set to true behind HTTPS in production
-                .sameSite("Lax")
+                .secure(cookieSecure)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(expirationMs / 1000)
                 .build();
@@ -58,8 +72,8 @@ public class JwtService {
     public ResponseCookie createCleanSessionCookie() {
         return ResponseCookie.from(cookieName, "")
                 .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
+                .secure(cookieSecure)
+                .sameSite(sameSite)
                 .path("/")
                 .maxAge(0)
                 .build();

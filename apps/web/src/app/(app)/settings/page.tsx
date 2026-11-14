@@ -23,12 +23,17 @@ export default function SettingsPage() {
   const [weeklyHours, setWeeklyHours] = useState(15);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [countryInput, setCountryInput] = useState("");
+  const [aiStatus, setAiStatus] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     async function loadPreferences() {
       try {
-        const data = await api.preferences.get();
+        const [data, ai] = await Promise.all([
+          api.preferences.get(),
+          api.ai.getStatus().catch(() => null),
+        ]);
         setPreferences(data);
+        if (ai) setAiStatus(ai);
         if (data.preferredCategories) setSelectedCategories(data.preferredCategories);
         if (data.remotePreference) setRemotePreference(data.remotePreference);
         if (data.preferredCountries) setPreferredCountries(data.preferredCountries);
@@ -250,6 +255,45 @@ export default function SettingsPage() {
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* AI & Platform Security Architecture */}
+        <div className="p-5 rounded-md bg-surface-card border border-surface-border space-y-4 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-surface-border pb-3">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-brand" />
+              <span className="text-xs font-bold uppercase tracking-wider text-text-primary">
+                AI &amp; Platform Security Telemetry
+              </span>
+            </div>
+            <span className="px-2 py-0.5 rounded text-[10px] bg-brand/10 border border-brand/30 text-brand">
+              Production Hardened
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="p-3 bg-bg-secondary border border-surface-border rounded space-y-1">
+              <div className="text-text-muted text-[10px] uppercase">Active AI Provider</div>
+              <div className="text-text-primary font-bold">
+                {String(aiStatus?.activeProviderName || "nexus-local-intelligence")}
+              </div>
+              <p className="text-[11px] text-text-secondary">
+                {aiStatus?.isGroundedFallbackActive
+                  ? "Operating in zero-latency deterministic offline mode."
+                  : "External LLM reasoning with grounded policy guardrails."}
+              </p>
+            </div>
+
+            <div className="p-3 bg-bg-secondary border border-surface-border rounded space-y-1">
+              <div className="text-text-muted text-[10px] uppercase">Safety Governance</div>
+              <div className="text-success font-bold flex items-center gap-1.5">
+                <Lock className="h-3 w-3" /> Level 3 Human Approval Gated
+              </div>
+              <p className="text-[11px] text-text-secondary">
+                Consequential external actions require explicit one-time authorization before execution.
+              </p>
+            </div>
           </div>
         </div>
 

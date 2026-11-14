@@ -31,12 +31,16 @@ class AiProviderServiceTest {
     private AiUsageRecordRepository usageRecordRepository;
 
     private LocalFallbackAiProvider fallbackProvider;
+    private com.nexus.intelligence.ai.GeminiAiProvider geminiProvider;
+    private com.nexus.intelligence.ai.OpenAiAiProvider openAiProvider;
     private AiProviderService service;
 
     @BeforeEach
     void setUp() {
         fallbackProvider = new LocalFallbackAiProvider();
-        service = new AiProviderService(fallbackProvider, usageRecordRepository);
+        geminiProvider = new com.nexus.intelligence.ai.GeminiAiProvider("", "gemini-1.5-flash", 30, fallbackProvider);
+        openAiProvider = new com.nexus.intelligence.ai.OpenAiAiProvider("", "gpt-4o-mini", 30, fallbackProvider);
+        service = new AiProviderService(fallbackProvider, geminiProvider, openAiProvider, usageRecordRepository);
     }
 
     @Test

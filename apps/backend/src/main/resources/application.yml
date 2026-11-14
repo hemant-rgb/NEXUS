@@ -1,5 +1,6 @@
 server:
   port: ${SERVER_PORT:8080}
+  shutdown: graceful
   servlet:
     context-path: /
 
@@ -7,16 +8,26 @@ spring:
   application:
     name: nexus-backend
 
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/nexus_db}
     username: ${POSTGRES_USER:nexus_user}
     password: ${POSTGRES_PASSWORD:nexus_dev_password_change_in_prod}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 2
+      pool-name: NexusHikariPool
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
       idle-timeout: 30000
       connection-timeout: 20000
+      leak-detection-threshold: 20000
 
   jpa:
     hibernate:
@@ -38,8 +49,16 @@ nexus:
     secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
     cookie-name: ${JWT_COOKIE_NAME:nexus_session}
+    cookie-secure: ${COOKIE_SECURE:false}
+    cookie-same-site: ${COOKIE_SAMESITE:Lax}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  security:
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      auth-limit: ${AUTH_RATE_LIMIT:30}
+      window-seconds: ${AUTH_RATE_LIMIT_WINDOW:60}
+    allow-private-ips: ${ALLOW_PRIVATE_IPS:false}
   matching:
     algorithm-version: "v1.0"
     weights:
@@ -54,15 +73,32 @@ nexus:
     model: ${AI_MODEL:nexus-grounded-analyzer-v1}
     api-key: ${AI_API_KEY:}
     base-url: ${AI_BASE_URL:}
+    timeout-seconds: ${AI_TIMEOUT_SECONDS:30}
+    max-retries: ${AI_MAX_RETRIES:3}
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %5p [nexus-backend,%X{correlationId:-}] [%15.15t] %-40.40logger{39} : %m%n"
+  level:
+    root: INFO
+    com.nexus: INFO
+    org.springframework.security: WARN
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics
   endpoint:
     health:
       show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
 
 springdoc:
   api-docs:

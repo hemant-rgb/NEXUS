@@ -3,6 +3,7 @@ package com.nexus.common.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexus.common.dto.ApiResponse;
 import com.nexus.common.security.JwtAuthenticationFilter;
+import com.nexus.common.security.RateLimitingFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,14 +27,17 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitingFilter rateLimitingFilter;
     private final CorsConfigurationSource corsConfigurationSource;
     private final ObjectMapper objectMapper;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
+            RateLimitingFilter rateLimitingFilter,
             CorsConfigurationSource corsConfigurationSource,
             ObjectMapper objectMapper) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.rateLimitingFilter = rateLimitingFilter;
         this.corsConfigurationSource = corsConfigurationSource;
         this.objectMapper = objectMapper;
     }
@@ -69,6 +73,8 @@ public class SecurityConfig {
                                 "/api/v1/opportunities/**",
                                 "/api/v1/sources",
                                 "/actuator/health",
+                                "/actuator/health/**",
+                                "/actuator/info",
                                 "/api/v1/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
@@ -76,6 +82,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll()
                 )
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
