@@ -1,0 +1,73 @@
+name: NEXUS Continuous Integration
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-test:
+    name: Backend Build & Unit/Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: nexus_db
+          POSTGRES_USER: nexus_user
+          POSTGRES_PASSWORD: nexus_dev_password_change_in_prod
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Build & Run Tests
+        working-directory: ./apps/backend
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/nexus_db
+          POSTGRES_USER: nexus_user
+          POSTGRES_PASSWORD: nexus_dev_password_change_in_prod
+        run: mvn clean test
+
+  frontend-test:
+    name: Frontend Build & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install Dependencies
+        working-directory: ./apps/web
+        run: npm ci
+
+      - name: Run Unit Tests
+        working-directory: ./apps/web
+        run: npm test
+
+      - name: Build Production Assets
+        working-directory: ./apps/web
+        run: npm run build

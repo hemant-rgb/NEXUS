@@ -1,0 +1,41 @@
+-- ==============================================================================
+-- NEXUS Schema - V2 Seed Initial Skills Catalog
+-- ==============================================================================
+
+INSERT INTO skills (id, name, normalized_name, category) VALUES
+    (gen_random_uuid(), 'Java', 'java', 'Programming Languages'),
+    (gen_random_uuid(), 'Python', 'python', 'Programming Languages'),
+    (gen_random_uuid(), 'TypeScript', 'typescript', 'Programming Languages'),
+    (gen_random_uuid(), 'JavaScript', 'javascript', 'Programming Languages'),
+    (gen_random_uuid(), 'C++', 'c++', 'Programming Languages'),
+    (gen_random_uuid(), 'C', 'c', 'Programming Languages'),
+    (gen_random_uuid(), 'Go', 'go', 'Programming Languages'),
+    (gen_random_uuid(), 'Rust', 'rust', 'Programming Languages'),
+    (gen_random_uuid(), 'Kotlin', 'kotlin', 'Programming Languages'),
+    (gen_random_uuid(), 'SQL', 'sql', 'Programming Languages'),
+    (gen_random_uuid(), 'Spring Boot', 'spring boot', 'Backend Frameworks'),
+    (gen_random_uuid(), 'Node.js', 'node.js', 'Backend Frameworks'),
+    (gen_random_uuid(), 'FastAPI', 'fastapi', 'Backend Frameworks'),
+    (gen_random_uuid(), 'Django', 'django', 'Backend Frameworks'),
+    (gen_random_uuid(), 'Express', 'express', 'Backend Frameworks'),
+    (gen_random_uuid(), 'React', 'react', 'Frontend Development'),
+    (gen_random_uuid(), 'Next.js', 'next.js', 'Frontend Development'),
+    (gen_random_uuid(), 'Tailwind CSS', 'tailwind css', 'Frontend Development'),
+    (gen_random_uuid(), 'HTML/CSS', 'html/css', 'Frontend Development'),
+    (gen_random_uuid(), 'PostgreSQL', 'postgresql', 'Databases'),
+    (gen_random_uuid(), 'MySQL', 'mysql', 'Databases'),
+    (gen_random_uuid(), 'MongoDB', 'mongodb', 'Databases'),
+    (gen_random_uuid(), 'Redis', 'redis', 'Databases'),
+    (gen_random_uuid(), 'Docker', 'docker', 'DevOps & Cloud'),
+    (gen_random_uuid(), 'Kubernetes', 'kubernetes', 'DevOps & Cloud'),
+    (gen_random_uuid(), 'AWS', 'aws', 'DevOps & Cloud'),
+    (gen_random_uuid(), 'Linux / Bash', 'linux / bash', 'DevOps & Cloud'),
+    (gen_random_uuid(), 'Git & GitHub', 'git & github', 'Developer Tools'),
+    (gen_random_uuid(), 'Data Structures & Algorithms', 'data structures & algorithms', 'CS Fundamentals'),
+    (gen_random_uuid(), 'System Design', 'system design', 'CS Fundamentals'),
+    (gen_random_uuid(), 'Machine Learning', 'machine learning', 'Artificial Intelligence'),
+    (gen_random_uuid(), 'Deep Learning', 'deep learning', 'Artificial Intelligence'),
+    (gen_random_uuid(), 'PyTorch', 'pytorch', 'Artificial Intelligence'),
+    (gen_random_uuid(), 'TensorFlow', 'tensorflow', 'Artificial Intelligence'),
+    (gen_random_uuid(), 'Open Source Contribution', 'open source contribution', 'Core Competencies')
+ON CONFLICT (normalized_name) DO NOTHING;
