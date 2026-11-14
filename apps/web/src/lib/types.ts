@@ -657,3 +657,112 @@ export interface ApplicationQuestionResponse {
   advisoryNotice: string;
 }
 
+
+// ==================== PHASE 8: PULSE & MONITORING ====================
+
+export type NotificationCategory = "OPPORTUNITY" | "APPLICATION" | "ROADMAP" | "GITHUB" | "SYSTEM" | "AGENT";
+export type NotificationPriority = "LOW" | "NORMAL" | "HIGH" | "CRITICAL";
+export type NotificationStatus = "UNREAD" | "READ" | "ARCHIVED";
+
+export interface Notification {
+  id: string;
+  notificationType: string;
+  category: NotificationCategory;
+  title: string;
+  message: string;
+  priority: NotificationPriority;
+  status: NotificationStatus;
+  relatedEntityType?: string;
+  relatedEntityId?: string;
+  actionUrl?: string;
+  createdAt: string;
+  readAt?: string;
+}
+
+export interface NotificationPreference {
+  id: string;
+  inAppEnabled: boolean;
+  emailEnabled: boolean;
+  opportunityAlerts: boolean;
+  applicationAlerts: boolean;
+  roadmapAlerts: boolean;
+  githubAlerts: boolean;
+  agentAlerts: boolean;
+  frequency: "IMMEDIATE" | "DAILY_DIGEST" | "WEEKLY_DIGEST";
+  quietHoursEnabled: boolean;
+  quietHoursStart: string;
+  quietHoursEnd: string;
+  timezone: string;
+}
+
+export interface ActivityItem {
+  id: string;
+  type: string;
+  category: NotificationCategory;
+  title: string;
+  description: string;
+  priority: NotificationPriority;
+  actionUrl?: string;
+  timestamp: string;
+}
+
+// ==================== PHASE 9: AUTONOMOUS AGENTS ====================
+
+export type AgentRunStatus = "PENDING" | "RUNNING" | "WAITING_APPROVAL" | "COMPLETED" | "FAILED" | "CANCELLED";
+export type AgentStepType = "THINKING" | "TOOL_CALL" | "DECISION" | "DRAFTING" | "VERIFICATION";
+export type AgentStepStatus = "STARTED" | "COMPLETED" | "FAILED" | "SKIPPED";
+export type AgentApprovalStatus = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED" | "CANCELLED";
+
+export interface AgentMetadata {
+  agentId: string;
+  name: string;
+  description: string;
+  autonomyLevel: number;
+  autonomyDescription: string;
+  permittedTools: string[];
+}
+
+export interface AgentStep {
+  id: string;
+  sequenceOrder: number;
+  stepType: AgentStepType;
+  toolId?: string;
+  status: AgentStepStatus;
+  inputSummary?: string;
+  outputSummary?: string;
+  startedAt: string;
+  completedAt?: string;
+}
+
+export interface AgentApproval {
+  id: string;
+  agentRunId: string;
+  actionType: string;
+  actionSummary: string;
+  actionPayload: string;
+  autonomyLevel: number;
+  status: AgentApprovalStatus;
+  requestedAt: string;
+  expiresAt?: string;
+  decidedAt?: string;
+  decisionReason?: string;
+}
+
+export interface AgentRun {
+  id: string;
+  agentId: string;
+  workflowId?: string;
+  status: AgentRunStatus;
+  triggerType: string;
+  inputSummary: string;
+  outputSummary?: string;
+  outputResult?: string;
+  errorSummary?: string;
+  tokenUsage: number;
+  estimatedCost: number;
+  startedAt?: string;
+  completedAt?: string;
+  createdAt: string;
+  steps: AgentStep[];
+  approvals: AgentApproval[];
+}

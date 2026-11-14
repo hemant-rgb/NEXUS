@@ -15,6 +15,7 @@ import {
   Settings,
   User as UserIcon,
   Cpu,
+  Bot,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -36,9 +37,10 @@ const NAV_ITEMS: NavItem[] = [
   { name: "GitHub OS", href: "/github", icon: GitBranch, status: "active" },
   { name: "Roadmaps", href: "/roadmaps", icon: Map, status: "active" },
   { name: "Skills", href: "/skills", icon: Cpu, status: "active" },
+  { name: "AI Agents", href: "/agents", icon: Bot, status: "active" },
+  { name: "Pulse Activity", href: "/activity", icon: Activity, status: "active" },
   { name: "Profile", href: "/profile", icon: UserIcon, status: "active" },
   { name: "Settings", href: "/settings", icon: Settings, status: "active" },
-  { name: "Activity", href: "#", icon: Activity, status: "coming-soon" },
 ];
 
 export function Sidebar() {

@@ -35,6 +35,13 @@ import {
   ApplicationInterview,
   ApplicationAnalytics,
   ApplicationQuestionResponse,
+  Notification,
+  NotificationPreference,
+  ActivityItem,
+  AgentMetadata,
+  AgentRun,
+  AgentStep,
+  AgentApproval,
 } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
@@ -504,6 +511,86 @@ export const api = {
       request<Resume>(`/resumes/${id}/tailor`, {
         method: "POST",
         body: JSON.stringify(payload),
+      }),
+  },
+
+  pulse: {
+    getNotifications: (params: { status?: string; category?: string; page?: number; size?: number } = {}) => {
+      const searchParams = new URLSearchParams();
+      if (params.status && params.status !== "ALL") searchParams.set("status", params.status);
+      if (params.category && params.category !== "ALL") searchParams.set("category", params.category);
+      if (params.page !== undefined) searchParams.set("page", String(params.page));
+      if (params.size !== undefined) searchParams.set("size", String(params.size));
+      const qs = searchParams.toString();
+      return request<PageResponse<Notification>>(`/users/me/notifications${qs ? `?${qs}` : ""}`, { method: "GET" });
+    },
+
+    getUnreadCount: () =>
+      request<{ unreadCount: number }>("/users/me/notifications/unread-count", { method: "GET" }),
+
+    markAsRead: (id: string) =>
+      request<Notification>(`/notifications/${id}/read`, { method: "PATCH" }),
+
+    archive: (id: string) =>
+      request<Notification>(`/notifications/${id}/archive`, { method: "PATCH" }),
+
+    markAllAsRead: () =>
+      request<{ markedRead: number; status: string }>("/users/me/notifications/read-all", { method: "POST" }),
+
+    getPreferences: () =>
+      request<NotificationPreference>("/users/me/notification-preferences", { method: "GET" }),
+
+    updatePreferences: (payload: Partial<NotificationPreference>) =>
+      request<NotificationPreference>("/users/me/notification-preferences", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }),
+
+    getActivity: (limit = 20) =>
+      request<ActivityItem[]>(`/users/me/activity?limit=${limit}`, { method: "GET" }),
+
+    triggerMonitoring: () =>
+      request<Record<string, unknown>>("/monitoring/trigger", { method: "POST" }),
+  },
+
+  agents: {
+    list: () =>
+      request<AgentMetadata[]>("/agents", { method: "GET" }),
+
+    get: (agentId: string) =>
+      request<AgentMetadata>(`/agents/${agentId}`, { method: "GET" }),
+
+    startRun: (agentId: string, payload: { goal: string; parameters?: Record<string, unknown> }) =>
+      request<AgentRun>(`/agents/${agentId}/runs`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    getUserRuns: (page = 0, size = 20) =>
+      request<PageResponse<AgentRun>>(`/users/me/agent-runs?page=${page}&size=${size}`, { method: "GET" }),
+
+    getRun: (runId: string) =>
+      request<AgentRun>(`/agent-runs/${runId}`, { method: "GET" }),
+
+    cancelRun: (runId: string) =>
+      request<AgentRun>(`/agent-runs/${runId}/cancel`, { method: "POST" }),
+
+    getRunSteps: (runId: string) =>
+      request<AgentStep[]>(`/agent-runs/${runId}/steps`, { method: "GET" }),
+
+    getApprovals: (status?: string) =>
+      request<AgentApproval[]>(`/users/me/agent-approvals${status && status !== "ALL" ? `?status=${status}` : ""}`, { method: "GET" }),
+
+    approve: (approvalId: string, reason?: string) =>
+      request<AgentApproval>(`/agent-approvals/${approvalId}/approve`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      }),
+
+    reject: (approvalId: string, reason?: string) =>
+      request<AgentApproval>(`/agent-approvals/${approvalId}/reject`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
       }),
   },
 };

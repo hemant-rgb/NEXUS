@@ -2,13 +2,14 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "brand" | "secondary" | "outline" | "cyan" | "warning" | "success" | "danger";
+  variant?: "brand" | "secondary" | "outline" | "cyan" | "warning" | "success" | "danger" | "neutral";
 }
 
 export function Badge({ className, variant = "secondary", children, ...props }: BadgeProps) {
   const variants = {
     brand: "bg-brand-subtle text-brand border-brand/30",
     secondary: "bg-surface-hover text-text-secondary border-surface-border",
+    neutral: "bg-surface-hover text-text-secondary border-surface-border",
     outline: "bg-transparent text-text-secondary border-surface-border",
     cyan: "bg-cyan-subtle text-cyan border-cyan/30",
     warning: "bg-warning-subtle text-warning border-warning/30",

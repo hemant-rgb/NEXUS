@@ -30,6 +30,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.validationError("Validation failed", errors));
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBadRequest(BadRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ApiResponse<Void>> handleDuplicateResource(DuplicateResourceException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)

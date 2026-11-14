@@ -16,6 +16,9 @@ public interface SavedOpportunityRepository extends JpaRepository<SavedOpportuni
     @Query("SELECT s FROM SavedOpportunity s JOIN FETCH s.opportunity WHERE s.user.id = :userId ORDER BY s.savedAt DESC")
     List<SavedOpportunity> findByUserIdWithOpportunity(@Param("userId") UUID userId);
 
+    @Query("SELECT s FROM SavedOpportunity s JOIN FETCH s.opportunity o JOIN FETCH s.user u WHERE o.deadline IS NOT NULL AND o.deadline >= :today AND o.deadline <= :closingDate")
+    List<SavedOpportunity> findClosingSoon(@Param("today") java.time.LocalDate today, @Param("closingDate") java.time.LocalDate closingDate);
+
     Optional<SavedOpportunity> findByUserIdAndOpportunityId(UUID userId, UUID opportunityId);
 
     boolean existsByUserIdAndOpportunityId(UUID userId, UUID opportunityId);

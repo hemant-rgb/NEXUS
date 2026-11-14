@@ -20,4 +20,7 @@ public interface ApplicationInterviewRepository extends JpaRepository<Applicatio
 
     @Query("SELECT i FROM ApplicationInterview i WHERE i.application.user.id = :userId AND i.status = :status ORDER BY i.scheduledAt ASC")
     List<ApplicationInterview> findUpcomingByUserId(@Param("userId") UUID userId, @Param("status") InterviewStatus status);
+
+    @Query("SELECT i FROM ApplicationInterview i JOIN FETCH i.application a JOIN FETCH a.user u WHERE i.scheduledAt >= :startDate AND i.scheduledAt <= :endDate AND i.status = 'SCHEDULED' ORDER BY i.scheduledAt ASC")
+    List<ApplicationInterview> findUpcomingScheduled(@Param("startDate") java.time.OffsetDateTime startDate, @Param("endDate") java.time.OffsetDateTime endDate);
 }
