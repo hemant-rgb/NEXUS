@@ -30,11 +30,11 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard, status: "active" },
   { name: "Discover", href: "/opportunities", icon: Compass, status: "active" },
+  { name: "Recommended", href: "/recommendations", icon: Sparkles, status: "active" },
   { name: "Saved", href: "/saved", icon: Bookmark, status: "active" },
   { name: "Profile", href: "/profile", icon: UserIcon, status: "active" },
   { name: "Skills", href: "/skills", icon: Cpu, status: "active" },
   { name: "Settings", href: "/settings", icon: Settings, status: "active" },
-  { name: "Recommended", href: "#", icon: Sparkles, status: "coming-soon" },
   { name: "My Applications", href: "#", icon: Briefcase, status: "coming-soon" },
   { name: "Roadmaps", href: "#", icon: Map, status: "coming-soon" },
   { name: "GitHub", href: "#", icon: GitBranch, status: "coming-soon" },

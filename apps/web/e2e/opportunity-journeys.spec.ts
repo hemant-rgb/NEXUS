@@ -123,4 +123,50 @@ test.describe("Opportunity Discovery and Management Journeys", () => {
     await contextA.close();
     await contextB.close();
   });
+
+  test("Journey D: Personalized Recommendations, Match Scoring & AI Intelligence", async ({ page }) => {
+    const userRec = {
+      name: `Rec User ${timestamp}`,
+      email: `rec-${timestamp}@nexus.io`,
+      password: "Password123!",
+    };
+
+    // 1. Register User
+    await page.goto("/register");
+    await page.waitForLoadState("networkidle");
+    await page.fill('input[autocomplete="name"]', userRec.name);
+    await page.fill('input[autocomplete="email"]', userRec.email);
+    await page.fill('input[autocomplete="new-password"]', userRec.password);
+    await page.click('button[type="submit"]');
+
+    await expect(page).toHaveURL(/.*(onboarding|dashboard)/, { timeout: 10000 });
+
+    // 2. Open Recommendations Feed
+    await page.goto("/recommendations");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("main h1")).toContainText(/Personalized Opportunity Intelligence/i);
+
+    // 3. Verify Refresh button exists and recommendations feed loads
+    const refreshBtn = page.locator('button:has-text("Recalculate Matches")');
+    await expect(refreshBtn).toBeVisible();
+
+    // 4. Navigate to an opportunity details page from recommendation or opportunities
+    await page.goto("/opportunities");
+    await page.waitForLoadState("networkidle");
+    const inspectBtn = page.locator('button:has-text("Inspect")').first();
+    await inspectBtn.click();
+    await expect(page).toHaveURL(/.*opportunities\/[a-zA-Z0-9-]+/, { timeout: 10000 });
+
+    // 5. Verify Match Intelligence elements and Skill Gap Matrix
+    await expect(page.locator("text=Personalized Match Intelligence")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("text=Technical Skill Gap Matrix")).toBeVisible();
+    await expect(page.locator("text=NEXUS Intelligence Analysis")).toBeVisible();
+
+    // 6. Test AI Analysis trigger
+    const analyzeBtn = page.locator('button:has-text("Synthesize AI Analysis")');
+    if (await analyzeBtn.isVisible()) {
+      await analyzeBtn.click();
+      await expect(page.locator("text=Model Provenance:")).toBeVisible({ timeout: 15000 });
+    }
+  });
 });

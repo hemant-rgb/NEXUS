@@ -30,3 +30,15 @@ nexus:
     cookie-name: nexus_session
   cors:
     allowed-origins: http://localhost:3000
+  matching:
+    algorithm-version: "v1.0"
+    weights:
+      skills: 30.0
+      eligibility: 25.0
+      interest: 15.0
+      experience: 15.0
+      deadline: 10.0
+      location: 5.0
+  ai:
+    provider: local
+    model: nexus-grounded-analyzer-v1

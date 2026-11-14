@@ -125,6 +125,81 @@ export interface SyncRunResponse {
   errorMessage?: string;
 }
 
+export interface DimensionScores {
+  skills: number;
+  eligibility: number;
+  interest: number;
+  experience: number;
+  deadline: number;
+  location: number;
+}
+
+export interface EligibilityAssessment {
+  status: "ELIGIBLE" | "INELIGIBLE" | "NEEDS_REVIEW" | "UNKNOWN";
+  reason: string;
+  missingProfileFields: string[];
+  criteriaChecked: string[];
+}
+
+export interface OpportunityMatch {
+  id: string;
+  opportunityId: string;
+  opportunity: Opportunity;
+  overallScore: number;
+  dimensionScores: DimensionScores;
+  eligibility: EligibilityAssessment;
+  matchedSkills: string[];
+  missingRequiredSkills: string[];
+  missingPreferredSkills: string[];
+  positiveFactors: string[];
+  negativeFactors: string[];
+  recommendationReason: string;
+  algorithmVersion: string;
+  calculatedAt: string;
+}
+
+export interface SkillItem {
+  skillName: string;
+  status: "MATCHED" | "PARTIALLY_MATCHED" | "MISSING" | "UNKNOWN";
+  userProficiency?: string;
+  priority: "HIGH" | "MEDIUM" | "LOW";
+  isRequired: boolean;
+}
+
+export interface SkillGapReport {
+  opportunityId: string;
+  opportunityTitle: string;
+  matchedSkills: SkillItem[];
+  partiallyMatchedSkills: SkillItem[];
+  missingRequiredSkills: SkillItem[];
+  missingPreferredSkills: SkillItem[];
+  totalSkillsEvaluated: number;
+  matchPercentage: number;
+}
+
+export interface OpportunityAnalysis {
+  id: string;
+  opportunityId: string;
+  opportunityTitle: string;
+  organization: string;
+  summary: string;
+  organizationOverview?: string;
+  expectations?: string;
+  keyDates?: string;
+  applicationProcess?: string;
+  requirementsAnalysis?: string;
+  personalizedAssessment?: string;
+  strengths: string[];
+  weaknesses: string[];
+  missingInformation: string[];
+  eligibilityConcerns?: string;
+  recommendation: "STRONG_FIT" | "POTENTIAL_FIT" | "WEAK_FIT" | "NEEDS_INFORMATION";
+  sourceReferences?: string;
+  modelName: string;
+  promptVersion: string;
+  generatedAt: string;
+}
+
 export interface PageResponse<T> {
   content: T[];
   totalElements: number;

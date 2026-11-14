@@ -334,3 +334,53 @@ Enables or disables an opportunity ingestion source.
   - `200 OK`: Updated source object with new status.
   - `403 Forbidden`: Unauthorized user.
   - `404 Not Found`: Source key not recognized.
+
+---
+
+## 8. Personalized Matching & Recommendations (`/users/me/recommendations`)
+
+### `GET /users/me/recommendations`
+Fetches a paginated, ranked stream of opportunities scored against the authenticated user's profile.
+- **Query Parameters:**
+  - `page`: Page index (default: `0`)
+  - `size`: Page size (default: `10`)
+  - `minScore`: Minimum overall relevance score $[0.0, 100.0]$
+  - `category`: Filter by opportunity category
+  - `eligibilityStatus`: Filter by status (`ELIGIBLE`, `NEEDS_REVIEW`, `INELIGIBLE`, `UNKNOWN`)
+  - `sort`: Sorting criteria (`overallScore,desc` default)
+- **Responses:**
+  - `200 OK`: Paginated `OpportunityMatchResponse` array with 6-dimension breakdown and explanation factors.
+
+### `GET /opportunities/{opportunityId}/match`
+Retrieves or dynamically computes the personalized match report for a specific opportunity.
+- **Responses:**
+  - `200 OK`: Complete `OpportunityMatchResponse` object.
+  - `404 Not Found`: Opportunity does not exist.
+
+### `POST /users/me/matches/refresh`
+Triggers on-demand recalculation of match scores across all open opportunities following profile/skills edits.
+- **Responses:**
+  - `200 OK`: Recalculation summary count.
+
+### `GET /opportunities/{opportunityId}/skill-gap`
+Calculates a normalized technical competency diff between user's skills and opportunity requirements.
+- **Responses:**
+  - `200 OK`: `SkillGapReportResponse` classifying skills into `MATCHED`, `PARTIALLY_MATCHED`, `MISSING_REQUIRED`, and `MISSING_PREFERRED`.
+
+---
+
+## 9. NEXUS Grounded AI Intelligence (`/opportunities/{opportunityId}/analysis`)
+
+### `GET /opportunities/{opportunityId}/analysis`
+Retrieves cached AI-synthesized intelligence breakdown for an opportunity.
+- **Responses:**
+  - `200 OK`: `OpportunityAnalysisResponse` object.
+  - `404 Not Found`: Analysis has not yet been generated.
+
+### `POST /opportunities/{opportunityId}/analysis`
+Generates or forces regeneration of an evidence-grounded AI analysis.
+- **Query Parameters:**
+  - `force`: `true` to bypass cache and regenerate (default: `false`)
+- **Responses:**
+  - `200 OK`: Structured `OpportunityAnalysisResponse` with summary, key timeline, expectations, strategic assessment, strengths, and weaknesses.
+  - `404 Not Found`: Opportunity does not exist.

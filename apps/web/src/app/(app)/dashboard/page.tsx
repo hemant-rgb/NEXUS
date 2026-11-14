@@ -19,13 +19,14 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserProfile, UserSkill, UserPreferences } from "@/lib/types";
+import { UserProfile, UserSkill, UserPreferences, OpportunityMatch } from "@/lib/types";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [skills, setSkills] = useState<UserSkill[]>([]);
+  const [topMatches, setTopMatches] = useState<OpportunityMatch[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +40,10 @@ export default function DashboardPage() {
         setProfile(p);
         setPreferences(prefs);
         setSkills(s);
+
+        api.matching.getRecommendations({ size: 3 })
+          .then((res) => setTopMatches(res.content || []))
+          .catch(() => {});
       } finally {
         setLoading(false);
       }
@@ -176,6 +181,61 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Top Recommendations (Phase 4 Intelligence) */}
+      {topMatches.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-brand" />
+              <h2 className="text-base font-mono font-bold text-text-primary">
+                Top Matches For Your Profile
+              </h2>
+            </div>
+            <Link href="/recommendations" className="text-xs font-mono text-brand hover:underline flex items-center gap-1">
+              View all recommendations <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {topMatches.map((m) => (
+              <div
+                key={m.id}
+                className="p-4 rounded-md bg-surface-card border border-surface-border hover:border-brand/40 flex flex-col justify-between space-y-3 transition-colors"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted truncate">
+                      {m.opportunity.organization}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-sm font-mono font-bold text-[11px] bg-brand/15 text-brand border border-brand/30">
+                      {Math.round(m.overallScore)}%
+                    </span>
+                  </div>
+
+                  <Link href={`/opportunities/${m.opportunity.id}`}>
+                    <h3 className="font-mono text-xs font-semibold text-text-primary hover:text-brand line-clamp-1">
+                      {m.opportunity.title}
+                    </h3>
+                  </Link>
+
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="cyan">{m.opportunity.category}</Badge>
+                    {m.opportunity.remoteAvailable && <Badge variant="brand">Remote</Badge>}
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-surface-border/60 flex items-center justify-between text-[11px] font-mono text-text-muted">
+                  <span>{m.eligibility.status}</span>
+                  <Link href={`/opportunities/${m.opportunity.id}`} className="text-brand hover:underline">
+                    Inspect →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Future Intelligence Modules (Clearly marked coming soon) */}
       <div className="space-y-3">

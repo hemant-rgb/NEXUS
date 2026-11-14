@@ -2,10 +2,13 @@ import {
   ApiResponse,
   CategoryCount,
   Opportunity,
+  OpportunityAnalysis,
+  OpportunityMatch,
   OpportunitySourceItem,
   PageResponse,
   SavedOpportunity,
   Skill,
+  SkillGapReport,
   SyncRunResponse,
   User,
   UserPreferences,
@@ -167,6 +170,46 @@ export const api = {
       request<SyncRunResponse[]>(`/sources/${sourceKey}/runs`, { method: "GET" }),
     triggerSync: (sourceKey: string) =>
       request<any>(`/sources/${sourceKey}/sync`, { method: "POST" }),
+  },
+
+  matching: {
+    getRecommendations: (params: {
+      minScore?: number;
+      category?: string;
+      eligibilityStatus?: string;
+      sortBy?: string;
+      page?: number;
+      size?: number;
+    } = {}) => {
+      const searchParams = new URLSearchParams();
+      if (params.minScore !== undefined) searchParams.set("minScore", String(params.minScore));
+      if (params.category) searchParams.set("category", params.category);
+      if (params.eligibilityStatus) searchParams.set("eligibilityStatus", params.eligibilityStatus);
+      if (params.sortBy) searchParams.set("sortBy", params.sortBy);
+      if (params.page !== undefined) searchParams.set("page", String(params.page));
+      if (params.size !== undefined) searchParams.set("size", String(params.size));
+      const queryString = searchParams.toString();
+      return request<PageResponse<OpportunityMatch>>(`/users/me/recommendations${queryString ? `?${queryString}` : ""}`, {
+        method: "GET",
+      });
+    },
+
+    getMatch: (opportunityId: string) =>
+      request<OpportunityMatch>(`/opportunities/${opportunityId}/match`, { method: "GET" }),
+
+    refreshMatches: () =>
+      request<{ refreshedCount: number; userId: string }>("/users/me/matches/refresh", { method: "POST" }),
+
+    getSkillGap: (opportunityId: string) =>
+      request<SkillGapReport>(`/opportunities/${opportunityId}/skill-gap`, { method: "GET" }),
+  },
+
+  intelligence: {
+    generateAnalysis: (opportunityId: string) =>
+      request<OpportunityAnalysis>(`/opportunities/${opportunityId}/analysis`, { method: "POST" }),
+
+    getAnalysis: (opportunityId: string) =>
+      request<OpportunityAnalysis>(`/opportunities/${opportunityId}/analysis`, { method: "GET" }),
   },
 };
 

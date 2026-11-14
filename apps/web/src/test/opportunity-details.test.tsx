@@ -18,6 +18,43 @@ vi.mock("@/lib/api", () => ({
       removeSaved: vi.fn(),
       updateNotes: vi.fn(),
     },
+    matching: {
+      getMatch: vi.fn().mockResolvedValue({
+        id: "match-1",
+        opportunityId: "opp-123",
+        overallScore: 88,
+        dimensionScores: { skills: 90, eligibility: 100, interest: 80, experience: 85, deadline: 90, location: 100 },
+        eligibility: { status: "ELIGIBLE", reason: "Eligible student", missingProfileFields: [], criteriaChecked: [] },
+        matchedSkills: ["Python", "Git"],
+        missingRequiredSkills: [],
+        missingPreferredSkills: ["Docker"],
+        positiveFactors: ["Strong skills alignment"],
+        negativeFactors: [],
+        recommendationReason: "Strong strategic fit for your background.",
+        algorithmVersion: "v1.0",
+        calculatedAt: new Date().toISOString(),
+      }),
+      getSkillGap: vi.fn().mockResolvedValue({
+        opportunityId: "opp-123",
+        opportunityTitle: "GSoC",
+        matchedSkills: [{ skillName: "Python", status: "MATCHED", userProficiency: "Advanced", priority: "HIGH", isRequired: true }],
+        partiallyMatchedSkills: [],
+        missingRequiredSkills: [],
+        missingPreferredSkills: [{ skillName: "Docker", status: "MISSING", priority: "LOW", isRequired: false }],
+        totalSkillsEvaluated: 2,
+        matchPercentage: 90,
+      }),
+    },
+    intelligence: {
+      getAnalysis: vi.fn().mockRejectedValue(new Error("Not found")),
+      generateAnalysis: vi.fn().mockResolvedValue({
+        id: "analysis-1",
+        opportunityId: "opp-123",
+        summary: "GSoC mentorship opportunity.",
+        recommendation: "STRONG_FIT",
+        modelName: "nexus-grounded-analyzer-v1",
+      }),
+    },
   },
 }));
 
@@ -60,10 +97,10 @@ describe("Opportunity Details Page", () => {
       expect(screen.getByText("Google Summer of Code 2027 Contributor")).toBeInTheDocument();
       expect(screen.getByText("Google Open Source")).toBeInTheDocument();
       expect(screen.getByText(/Write code with mentor organizations/i)).toBeInTheDocument();
-      expect(screen.getByText("Git")).toBeInTheDocument();
-      expect(screen.getByText("Python")).toBeInTheDocument();
-      expect(screen.getByText("Docker")).toBeInTheDocument();
-      expect(screen.getByText("Go")).toBeInTheDocument();
+      expect(screen.getAllByText("Git").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Python").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Docker").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Go").length).toBeGreaterThan(0);
       expect(screen.getByText(/2027-04-15/)).toBeInTheDocument();
     });
   });

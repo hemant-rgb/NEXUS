@@ -127,6 +127,60 @@ Deadlines & Program Dates: **DATE** (`LocalDate`)
 - `notes`: TEXT
 - **Unique Constraint**: `uq_user_saved_opportunity` (`user_id`, `opportunity_id`)
 
+### `opportunity_matches`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `user_id`: UUID NOT NULL REFERENCES `users(id)` ON DELETE CASCADE
+- `opportunity_id`: UUID NOT NULL REFERENCES `opportunities(id)` ON DELETE CASCADE
+- `overall_score`: DOUBLE PRECISION NOT NULL
+- `skills_score`: DOUBLE PRECISION NOT NULL
+- `eligibility_score`: DOUBLE PRECISION NOT NULL
+- `interest_score`: DOUBLE PRECISION NOT NULL
+- `experience_score`: DOUBLE PRECISION NOT NULL
+- `deadline_score`: DOUBLE PRECISION NOT NULL
+- `location_score`: DOUBLE PRECISION NOT NULL
+- `eligibility_status`: VARCHAR(50) NOT NULL
+- `eligibility_reason`: TEXT
+- `matched_skills`: TEXT (JSON array string)
+- `missing_required_skills`: TEXT (JSON array string)
+- `missing_preferred_skills`: TEXT (JSON array string)
+- `positive_factors`: TEXT (JSON array string)
+- `negative_factors`: TEXT (JSON array string)
+- `recommendation_reason`: TEXT
+- `algorithm_version`: VARCHAR(50) NOT NULL DEFAULT 'v1.0'
+- `calculated_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- **Unique Constraint**: `uq_user_opportunity_match` (`user_id`, `opportunity_id`)
+- **Indexes**: `idx_opportunity_matches_user`, `idx_opportunity_matches_opp`, `idx_opportunity_matches_score`.
+
+### `opportunity_analyses`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `opportunity_id`: UUID NOT NULL REFERENCES `opportunities(id)` ON DELETE CASCADE
+- `summary`: TEXT NOT NULL
+- `organization_overview`: TEXT
+- `technical_expectations`: TEXT
+- `key_dates`: TEXT
+- `application_process`: TEXT
+- `personalized_assessment`: TEXT
+- `strengths`: TEXT (JSON array string)
+- `weaknesses`: TEXT (JSON array string)
+- `recommendation`: VARCHAR(50) NOT NULL DEFAULT 'NEEDS_INFORMATION'
+- `model_name`: VARCHAR(100) NOT NULL
+- `prompt_version`: VARCHAR(50) NOT NULL DEFAULT 'v1.0'
+- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- `updated_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
+### `ai_usage_records`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `user_id`: UUID REFERENCES `users(id)` ON DELETE SET NULL
+- `feature_name`: VARCHAR(100) NOT NULL
+- `provider_name`: VARCHAR(100) NOT NULL
+- `model_name`: VARCHAR(100) NOT NULL
+- `prompt_tokens`: INTEGER DEFAULT 0
+- `completion_tokens`: INTEGER DEFAULT 0
+- `total_tokens`: INTEGER DEFAULT 0
+- `cost_usd`: NUMERIC(10, 6) DEFAULT 0.000000
+- `latency_ms`: BIGINT
+- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
 ---
 
 ## 3. Migration Version Log
@@ -134,3 +188,5 @@ Deadlines & Program Dates: **DATE** (`LocalDate`)
 - `V2__seed_initial_skills.sql`: Seeded 35 core technical competencies.
 - `V3__opportunity_and_source_schema.sql`: Opportunity discovery, sources, listings, and saved opportunities tables.
 - `V4__seed_demo_opportunities.sql`: Seeded 8 realistic demo opportunities across all 8 supported categories and initial sources.
+- `V5__discovery_sync_runs.sql`: Ingestion run telemetry, sync status tracking, and error logs.
+- `V6__matching_and_intelligence.sql`: Personalized opportunity matches, AI analyses, and token usage audit logs.

@@ -1,4 +1,4 @@
-# NEXUS System Architecture — Phase 3: Real-World Opportunity Source Integrations & Automated Ingestion
+# NEXUS System Architecture — Phase 4: Intelligence Engine & Personalized Matching
 
 ## 1. Architecture Overview
 
@@ -9,8 +9,10 @@ NEXUS is engineered as a high-performance **modular monolith** with clear domain
 |                       NEXUS Client (Next.js 14)                         |
 |  - App Router / React Server & Client Components                        |
 |  - Command Center Shell (Sidebar, TopNav, Breadcrumbs)                  |
+|  - Recommendations Feed (/recommendations) with Dimension Dials         |
 |  - Discovery Engine UI (/opportunities, /opportunities/[id])            |
-|  - Data Provenance Badges & Last Verified Telemetry                     |
+|  - Match Intelligence & Technical Skill-Gap Matrix Component            |
+|  - AI Grounded Intelligence Synthesizer Component                       |
 |  - Bookmarks & Annotation Engine (/saved)                               |
 |  - Dark Developer Aesthetic / High Information Density                  |
 +-------------------------------------------------------------------------+
@@ -41,18 +43,38 @@ NEXUS is engineered as a high-performance **modular monolith** with clear domain
 |  | - Content Normalization & Prompt-Injection Neutralization         |  |
 |  | - SyncRun Telemetry & Metrics Tracking (Created/Updated/Dups)     |  |
 |  +-------------------------------------------------------------------+  |
+|                                                                         |
+|  +-----------------------------------+   +---------------------------+  |
+|  |          Matching Module          |   |    Intelligence Module    |  |
+|  | - 6-Dimension Deterministic Engine|   | - Provider Abstraction    |  |
+|  | - Grounded Eligibility Assessor   |   | - Local Fallback Provider |  |
+|  | - Weighted Skill Gap Matrix       |   | - Token & Cost Telemetry  |  |
+|  | - Ineligibility Score Capping     |   | - Prompt Injection Guard  |  |
+|  +-----------------------------------+   +---------------------------+  |
 +-------------------------------------------------------------------------+
                                      |
                                Spring Data JPA
                                      |
 +-------------------------------------------------------------------------+
 |                    Data Persistence (PostgreSQL 16)                     |
-|  - Flyway Migrations (V1, V2, V3, V4, V5)                               |
+|  - Flyway Migrations (V1 through V6)                                    |
+|  - Matching: opportunity_matches (Dimensions & Factors)                 |
+|  - Intelligence: opportunity_analyses & ai_usage_records                |
 |  - Ingestion Telemetry: sync_runs Table & Counters                      |
 |  - UUID Primary Keys & UTC Timestamps                                   |
-|  - Date-only Deadlines & Strict Unique Constraints                      |
 +-------------------------------------------------------------------------+
 ```
+
+## 2. Core Modules & Phase 4 Capabilities
+
+### 2.1 Personalized Matching Engine (`com.nexus.matching`)
+- **6-Dimension Deterministic Model**: Computes weighted match score $[0.0, 100.0]$ across Skills (30%), Eligibility (25%), Interest (15%), Experience (15%), Deadline (10%), and Location (5%).
+- **Hard Eligibility Boundary**: Enforces strict score capping at $\le 35.0\%$ when mandatory criteria are violated (`INELIGIBLE`).
+- **Skill Gap Normalization**: Resolves aliases (e.g. `ReactJS` $\rightarrow$ `react`) and computes priority-ranked gap matrices (`MATCHED`, `PARTIALLY_MATCHED`, `MISSING`).
+
+### 2.2 Grounded AI Intelligence (`com.nexus.intelligence`)
+- **Decoupled AI Architecture**: Implements `AiProvider` interface with automatic offline fallback (`LocalFallbackAiProvider`).
+- **Security & Telemetry**: Encapsulates external scraping data within `<untrusted_content>` tags, tracks prompt versions (`v1.0`), and audits token usage in `ai_usage_records`.
 
 ## 2. Core Modules & Phase 3 Capabilities
 
