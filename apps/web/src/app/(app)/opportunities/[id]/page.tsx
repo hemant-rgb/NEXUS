@@ -234,6 +234,13 @@ export default function OpportunityDetailsPage() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            <Link href={`/roadmaps/new?opportunityId=${opportunity.id}`}>
+              <Button variant="outline" size="sm" className="border-brand/40 text-brand hover:bg-brand/10">
+                <Sparkles className="mr-1.5 h-3.5 w-3.5 text-brand" />
+                Prepare Roadmap
+              </Button>
+            </Link>
+
             <Button
               variant={isSaved ? "secondary" : "outline"}
               size="sm"

@@ -19,7 +19,8 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserProfile, UserSkill, UserPreferences, OpportunityMatch } from "@/lib/types";
+import { UserProfile, UserSkill, UserPreferences, OpportunityMatch, RoadmapSummary } from "@/lib/types";
+import { Map } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ export default function DashboardPage() {
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
   const [skills, setSkills] = useState<UserSkill[]>([]);
   const [topMatches, setTopMatches] = useState<OpportunityMatch[]>([]);
+  const [activeRoadmaps, setActiveRoadmaps] = useState<RoadmapSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,6 +45,10 @@ export default function DashboardPage() {
 
         api.matching.getRecommendations({ size: 3 })
           .then((res) => setTopMatches(res.content || []))
+          .catch(() => {});
+
+        api.roadmaps.list()
+          .then((res) => setActiveRoadmaps(res.filter((r) => r.status === "ACTIVE").slice(0, 2)))
           .catch(() => {});
       } finally {
         setLoading(false);
@@ -181,6 +187,64 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Active Roadmaps Section (Phase 5 Strategy) */}
+      {activeRoadmaps.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Map className="h-4 w-4 text-brand" />
+              <h2 className="text-base font-mono font-bold text-text-primary">
+                Active Preparation Roadmaps
+              </h2>
+            </div>
+            <Link href="/roadmaps" className="text-xs font-mono text-brand hover:underline flex items-center gap-1">
+              View all roadmaps <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeRoadmaps.map((r) => (
+              <div
+                key={r.id}
+                className="p-4 rounded-md bg-surface-card border border-surface-border hover:border-brand/40 space-y-3 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1">
+                    <Badge variant={r.roadmapType === "OPPORTUNITY_PREPARATION" ? "brand" : "cyan"}>
+                      {r.roadmapType === "OPPORTUNITY_PREPARATION" ? "Opportunity Prep" : "Goal Mastery"}
+                    </Badge>
+                    <Link href={`/roadmaps/${r.id}`}>
+                      <h3 className="font-mono text-xs font-semibold text-text-primary hover:text-brand line-clamp-1 pt-1">
+                        {r.title}
+                      </h3>
+                    </Link>
+                  </div>
+                  <span className="font-mono font-bold text-xs text-brand">
+                    {Math.round(r.overallProgressPercentage)}%
+                  </span>
+                </div>
+
+                <div className="w-full bg-surface-border h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-brand h-full rounded-full"
+                    style={{ width: `${Math.min(100, Math.max(0, r.overallProgressPercentage))}%` }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] font-mono text-text-muted pt-1 border-t border-surface-border/60">
+                  <span>
+                    {r.completedTasks}/{r.totalTasks} Tasks Completed
+                  </span>
+                  <Link href={`/roadmaps/${r.id}`} className="text-brand hover:underline">
+                    Continue Pathway →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Top Recommendations (Phase 4 Intelligence) */}
       {topMatches.length > 0 && (

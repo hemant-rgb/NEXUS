@@ -51,13 +51,24 @@ NEXUS is engineered as a high-performance **modular monolith** with clear domain
 |  | - Weighted Skill Gap Matrix       |   | - Token & Cost Telemetry  |  |
 |  | - Ineligibility Score Capping     |   | - Prompt Injection Guard  |  |
 |  +-----------------------------------+   +---------------------------+  |
+|                                                                         |
+|  +-------------------------------------------------------------------+  |
+|  |                    Roadmap & Strategy Module                      |  |
+|  | - Opportunity & Goal-Based Synthesis                              |  |
+|  | - Deterministic Scheduling & Rescheduling Engine (Capacity Math) |  |
+|  | - Concrete Completion Criteria Validation                         |  |
+|  | - Progress Telemetry, Overdue Detection & Work Preservation       |  |
+|  | - Curated Learning Resources Catalog & SSRF-Safe URL Validation   |  |
+|  +-------------------------------------------------------------------+  |
 +-------------------------------------------------------------------------+
                                      |
                                Spring Data JPA
                                      |
 +-------------------------------------------------------------------------+
 |                    Data Persistence (PostgreSQL 16)                     |
-|  - Flyway Migrations (V1 through V6)                                    |
+|  - Flyway Migrations (V1 through V7)                                    |
+|  - Strategy: roadmaps, roadmap_milestones, roadmap_tasks                |
+|  - Resources: learning_resources, task_resources                        |
 |  - Matching: opportunity_matches (Dimensions & Factors)                 |
 |  - Intelligence: opportunity_analyses & ai_usage_records                |
 |  - Ingestion Telemetry: sync_runs Table & Counters                      |
@@ -65,9 +76,16 @@ NEXUS is engineered as a high-performance **modular monolith** with clear domain
 +-------------------------------------------------------------------------+
 ```
 
-## 2. Core Modules & Phase 4 Capabilities
+## 2. Core Modules & Phase 5 Capabilities
 
-### 2.1 Personalized Matching Engine (`com.nexus.matching`)
+### 2.1 Strategy & Roadmap Engine (`com.nexus.roadmap`)
+- **Opportunity & Goal-Based Preparation**: Generates concrete milestone checklists tailored to missing required skills or custom career goals.
+- **Deterministic Scheduling Engine (`RoadmapSchedulingEngine`)**: Calculates milestone dates and task scheduled days based on user weekly hours budget, skipping weekends and pacing daily effort.
+- **Dynamic Progress Telemetry (`RoadmapProgressService`)**: Real-time calculation of milestone percentages, remaining estimated hours, and overdue tasks.
+- **Partial Regeneration**: Re-plans remaining uncompleted milestones while **strictly preserving** historical completed tasks and user notes.
+- **Verified Learning Catalog (`LearningResourceService`)**: Authoritative documentation mapped to technical skills with SSRF-safe URL validation.
+
+### 2.2 Personalized Matching Engine (`com.nexus.matching`)
 - **6-Dimension Deterministic Model**: Computes weighted match score $[0.0, 100.0]$ across Skills (30%), Eligibility (25%), Interest (15%), Experience (15%), Deadline (10%), and Location (5%).
 - **Hard Eligibility Boundary**: Enforces strict score capping at $\le 35.0\%$ when mandatory criteria are violated (`INELIGIBLE`).
 - **Skill Gap Normalization**: Resolves aliases (e.g. `ReactJS` $\rightarrow$ `react`) and computes priority-ranked gap matrices (`MATCHED`, `PARTIALLY_MATCHED`, `MISSING`).

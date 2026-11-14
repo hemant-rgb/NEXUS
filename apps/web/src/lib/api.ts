@@ -14,6 +14,14 @@ import {
   UserPreferences,
   UserProfile,
   UserSkill,
+  Roadmap,
+  RoadmapSummary,
+  RoadmapTask,
+  RoadmapProgress,
+  TaskResource,
+  LearningResource,
+  CreateRoadmapPayload,
+  UpdateTaskPayload,
 } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
@@ -210,6 +218,65 @@ export const api = {
 
     getAnalysis: (opportunityId: string) =>
       request<OpportunityAnalysis>(`/opportunities/${opportunityId}/analysis`, { method: "GET" }),
+  },
+
+  roadmaps: {
+    list: () =>
+      request<RoadmapSummary[]>("/users/me/roadmaps", { method: "GET" }),
+
+    get: (id: string) =>
+      request<Roadmap>(`/roadmaps/${id}`, { method: "GET" }),
+
+    generate: (payload: CreateRoadmapPayload) =>
+      request<Roadmap>("/roadmaps/generate", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    update: (id: string, payload: Partial<Roadmap>) =>
+      request<Roadmap>(`/roadmaps/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    delete: (id: string) =>
+      request<void>(`/roadmaps/${id}`, { method: "DELETE" }),
+
+    regenerate: (id: string) =>
+      request<Roadmap>(`/roadmaps/${id}/regenerate`, { method: "POST" }),
+
+    progress: (id: string) =>
+      request<RoadmapProgress>(`/roadmaps/${id}/progress`, { method: "GET" }),
+
+    reschedule: (id: string) =>
+      request<RoadmapProgress>(`/roadmaps/${id}/reschedule`, { method: "POST" }),
+
+    createTask: (roadmapId: string, payload: Partial<RoadmapTask>) =>
+      request<RoadmapTask>(`/roadmaps/${roadmapId}/tasks`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    updateTask: (roadmapId: string, taskId: string, payload: UpdateTaskPayload) =>
+      request<RoadmapTask>(`/roadmaps/${roadmapId}/tasks/${taskId}`, {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }),
+
+    deleteTask: (roadmapId: string, taskId: string) =>
+      request<void>(`/roadmaps/${roadmapId}/tasks/${taskId}`, { method: "DELETE" }),
+
+    addTaskResource: (taskId: string, payload: { resourceId?: string; customTitle?: string; customUrl?: string; customProvider?: string }) =>
+      request<TaskResource>(`/tasks/${taskId}/resources`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+
+    removeTaskResource: (taskId: string, resourceId: string) =>
+      request<void>(`/tasks/${taskId}/resources/${resourceId}`, { method: "DELETE" }),
+
+    searchResources: (query?: string) =>
+      request<LearningResource[]>(`/resources/search${query ? `?query=${encodeURIComponent(query)}` : ""}`, { method: "GET" }),
   },
 };
 

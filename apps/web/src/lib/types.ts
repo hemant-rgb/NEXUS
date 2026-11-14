@@ -242,3 +242,158 @@ export const DEFAULT_INTERESTS = [
   "Cybersecurity",
   "Cloud Computing",
 ] as const;
+
+// --- Phase 5: Roadmaps & Task Management Types ---
+
+export type RoadmapType = "OPPORTUNITY_PREPARATION" | "GOAL_BASED";
+export type RoadmapStatus = "NOT_STARTED" | "ACTIVE" | "PAUSED" | "COMPLETED" | "ARCHIVED";
+export type MilestoneStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
+export type TaskType = "LEARNING" | "PRACTICE" | "PROJECT" | "RESEARCH" | "REVISION" | "APPLICATION_PREPARATION" | "ASSESSMENT";
+export type TaskPriority = "HIGH" | "MEDIUM" | "LOW";
+export type TaskStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "BLOCKED";
+
+export interface TaskResource {
+  id: string;
+  taskId: string;
+  resourceId?: string;
+  title: string;
+  url: string;
+  provider: string;
+  resourceType: string;
+  verificationStatus: string;
+}
+
+export interface LearningResource {
+  id: string;
+  title: string;
+  description: string;
+  resourceUrl: string;
+  resourceType: string;
+  provider: string;
+  skillName?: string;
+  difficultyLevel: string;
+  estimatedDuration?: string;
+  verificationStatus: "VERIFIED" | "COMMUNITY" | "UNVERIFIED";
+}
+
+export interface RoadmapTask {
+  id: string;
+  milestoneId: string;
+  roadmapId: string;
+  title: string;
+  description?: string;
+  completionCriteria?: string;
+  taskType: TaskType;
+  priority: TaskPriority;
+  estimatedHours: number;
+  sequenceOrder: number;
+  scheduledDate?: string;
+  status: TaskStatus;
+  completedAt?: string;
+  userNotes?: string;
+  dependencies?: string;
+  resources: TaskResource[];
+}
+
+export interface RoadmapMilestone {
+  id: string;
+  roadmapId: string;
+  title: string;
+  description?: string;
+  sequenceOrder: number;
+  estimatedDurationWeeks: number;
+  targetDate?: string;
+  status: MilestoneStatus;
+  completionPercentage: number;
+  tasks: RoadmapTask[];
+}
+
+export interface RoadmapSummary {
+  id: string;
+  title: string;
+  description?: string;
+  roadmapType: RoadmapType;
+  targetOpportunityId?: string;
+  targetOpportunityTitle?: string;
+  targetGoal?: string;
+  status: RoadmapStatus;
+  startDate: string;
+  targetCompletionDate?: string;
+  estimatedDurationWeeks: number;
+  availableHoursPerWeek: number;
+  overallProgressPercentage: number;
+  totalMilestones: number;
+  completedMilestones: number;
+  totalTasks: number;
+  completedTasks: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Roadmap {
+  id: string;
+  userId: string;
+  title: string;
+  description?: string;
+  roadmapType: RoadmapType;
+  targetOpportunityId?: string;
+  targetOpportunityTitle?: string;
+  targetGoal?: string;
+  status: RoadmapStatus;
+  startDate: string;
+  targetCompletionDate?: string;
+  estimatedDurationWeeks: number;
+  availableHoursPerWeek: number;
+  generationVersion: string;
+  overallProgressPercentage: number;
+  totalMilestones: number;
+  completedMilestones: number;
+  totalTasks: number;
+  completedTasks: number;
+  remainingEstimatedHours: number;
+  milestones: RoadmapMilestone[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoadmapProgress {
+  roadmapId: string;
+  status: RoadmapStatus;
+  overallProgressPercentage: number;
+  totalMilestones: number;
+  completedMilestones: number;
+  totalTasks: number;
+  completedTasks: number;
+  inProgressTasks: number;
+  blockedTasks: number;
+  totalEstimatedHours: number;
+  remainingEstimatedHours: number;
+  projectedCompletionDate?: string;
+  overdueTasks: RoadmapTask[];
+  upcomingTasks: RoadmapTask[];
+}
+
+export interface CreateRoadmapPayload {
+  roadmapType: RoadmapType;
+  opportunityId?: string;
+  targetGoal?: string;
+  targetDomain?: string;
+  currentSkillLevel?: string;
+  targetSkills?: string[];
+  availableHoursPerWeek?: number;
+  targetCompletionDate?: string;
+  customTitle?: string;
+}
+
+export interface UpdateTaskPayload {
+  title?: string;
+  description?: string;
+  completionCriteria?: string;
+  taskType?: TaskType;
+  priority?: TaskPriority;
+  estimatedHours?: number;
+  sequenceOrder?: number;
+  scheduledDate?: string;
+  status?: TaskStatus;
+  userNotes?: string;
+}

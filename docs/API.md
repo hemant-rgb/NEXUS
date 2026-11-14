@@ -384,3 +384,69 @@ Generates or forces regeneration of an evidence-grounded AI analysis.
 - **Responses:**
   - `200 OK`: Structured `OpportunityAnalysisResponse` with summary, key timeline, expectations, strategic assessment, strengths, and weaknesses.
   - `404 Not Found`: Opportunity does not exist.
+
+---
+
+## 10. NEXUS Strategy & Roadmaps (`/roadmaps`)
+
+### `POST /roadmaps/generate`
+Generates a structured preparation roadmap for an opportunity or career goal.
+- **Request Body (`CreateRoadmapRequest`):**
+  ```json
+  {
+    "roadmapType": "OPPORTUNITY_PREPARATION",
+    "opportunityId": "c0000000-0000-0000-0000-000000000001",
+    "availableHoursPerWeek": 12,
+    "targetCompletionDate": "2027-04-15",
+    "customTitle": "GSoC 2027 Mastery"
+  }
+  ```
+- **Responses:**
+  - `201 Created`: Complete `RoadmapResponse` with milestones, scheduled tasks, and linked resources.
+
+### `GET /users/me/roadmaps`
+Retrieves all roadmaps owned by the authenticated user with completion metrics.
+- **Responses:**
+  - `200 OK`: Array of `RoadmapSummaryResponse` items.
+
+### `GET /roadmaps/{roadmapId}`
+Retrieves full roadmap specification, ordered milestones, tasks, and attached resources.
+- **Responses:**
+  - `200 OK`: `RoadmapResponse` object.
+  - `403 Forbidden`: User does not own the roadmap.
+  - `404 Not Found`: Roadmap ID not found.
+
+### `PATCH /roadmaps/{roadmapId}`
+Updates roadmap parameters, weekly study budget, status, or title.
+- **Responses:**
+  - `200 OK`: Updated `RoadmapResponse`.
+
+### `DELETE /roadmaps/{roadmapId}`
+Deletes a roadmap and cascade deletes its milestones and tasks.
+- **Responses:**
+  - `200 OK`: Success message.
+
+### `POST /roadmaps/{roadmapId}/regenerate`
+Regenerates uncompleted milestones while strictly preserving completed milestones, tasks, and notes.
+- **Responses:**
+  - `200 OK`: Updated `RoadmapResponse`.
+
+### `POST /roadmaps/{roadmapId}/reschedule`
+Deterministically reschedules all remaining uncompleted tasks from today forward.
+- **Responses:**
+  - `200 OK`: Updated `RoadmapProgressResponse`.
+
+### `PATCH /roadmaps/{roadmapId}/tasks/{taskId}`
+Updates task status (`NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`, `SKIPPED`, `BLOCKED`) or personal developer notes.
+- **Responses:**
+  - `200 OK`: Updated `TaskResponse`.
+
+### `POST /tasks/{taskId}/resources`
+Attaches a catalog resource or custom external link to a task.
+- **Responses:**
+  - `201 Created`: `TaskResourceResponse`.
+
+### `GET /resources/search`
+Searches curated, verified learning resources by skill or keyword.
+- **Responses:**
+  - `200 OK`: Array of `LearningResourceResponse`.

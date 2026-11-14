@@ -181,6 +181,77 @@ Deadlines & Program Dates: **DATE** (`LocalDate`)
 - `latency_ms`: BIGINT
 - `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 
+### `roadmaps`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `user_id`: UUID NOT NULL REFERENCES `users(id)` ON DELETE CASCADE
+- `title`: VARCHAR(255) NOT NULL
+- `description`: TEXT
+- `roadmap_type`: VARCHAR(50) NOT NULL (`OPPORTUNITY_PREPARATION`, `GOAL_BASED`)
+- `target_opportunity_id`: UUID REFERENCES `opportunities(id)` ON DELETE SET NULL
+- `target_goal`: VARCHAR(255)
+- `status`: VARCHAR(50) NOT NULL DEFAULT 'ACTIVE' (`NOT_STARTED`, `ACTIVE`, `PAUSED`, `COMPLETED`, `ARCHIVED`)
+- `start_date`: DATE NOT NULL
+- `target_completion_date`: DATE
+- `estimated_duration_weeks`: INTEGER NOT NULL DEFAULT 4
+- `available_hours_per_week`: INTEGER NOT NULL DEFAULT 10
+- `generation_version`: VARCHAR(50) NOT NULL DEFAULT 'v1.0'
+- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- `updated_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
+### `roadmap_milestones`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `roadmap_id`: UUID NOT NULL REFERENCES `roadmaps(id)` ON DELETE CASCADE
+- `title`: VARCHAR(255) NOT NULL
+- `description`: TEXT
+- `sequence_order`: INTEGER NOT NULL
+- `estimated_duration_weeks`: INTEGER NOT NULL DEFAULT 1
+- `target_date`: DATE
+- `status`: VARCHAR(50) NOT NULL DEFAULT 'NOT_STARTED' (`NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`, `SKIPPED`)
+- `completion_percentage`: DOUBLE PRECISION NOT NULL DEFAULT 0.0
+- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- `updated_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
+### `roadmap_tasks`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `milestone_id`: UUID NOT NULL REFERENCES `roadmap_milestones(id)` ON DELETE CASCADE
+- `roadmap_id`: UUID NOT NULL REFERENCES `roadmaps(id)` ON DELETE CASCADE
+- `title`: VARCHAR(255) NOT NULL
+- `description`: TEXT
+- `completion_criteria`: TEXT
+- `task_type`: VARCHAR(50) NOT NULL (`LEARNING`, `PRACTICE`, `PROJECT`, `RESEARCH`, `REVISION`, `APPLICATION_PREPARATION`, `ASSESSMENT`)
+- `priority`: VARCHAR(50) NOT NULL DEFAULT 'MEDIUM' (`HIGH`, `MEDIUM`, `LOW`)
+- `estimated_hours`: DOUBLE PRECISION NOT NULL DEFAULT 2.0
+- `sequence_order`: INTEGER NOT NULL
+- `scheduled_date`: DATE
+- `status`: VARCHAR(50) NOT NULL DEFAULT 'NOT_STARTED' (`NOT_STARTED`, `IN_PROGRESS`, `COMPLETED`, `SKIPPED`, `BLOCKED`)
+- `completed_at`: TIMESTAMP WITH TIME ZONE
+- `user_notes`: TEXT
+- `dependencies`: TEXT (JSON array string)
+- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- `updated_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
+### `learning_resources`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `title`: VARCHAR(255) NOT NULL
+- `description`: TEXT
+- `resource_url`: TEXT NOT NULL
+- `resource_type`: VARCHAR(50) NOT NULL (`DOCUMENTATION`, `COURSE`, `TUTORIAL`, `ARTICLE`, `BOOK`, `PRACTICE_PLATFORM`, `REPO`, `VIDEO`)
+- `provider`: VARCHAR(100) NOT NULL
+- `skill_name`: VARCHAR(100)
+- `difficulty_level`: VARCHAR(50) NOT NULL DEFAULT 'ALL_LEVELS'
+- `estimated_duration`: VARCHAR(100)
+- `verification_status`: VARCHAR(50) NOT NULL DEFAULT 'VERIFIED'
+- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
+### `task_resources`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `task_id`: UUID NOT NULL REFERENCES `roadmap_tasks(id)` ON DELETE CASCADE
+- `resource_id`: UUID REFERENCES `learning_resources(id)` ON DELETE CASCADE
+- `custom_title`: VARCHAR(255)
+- `custom_url`: TEXT
+- `custom_provider`: VARCHAR(100)
+- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
 ---
 
 ## 3. Migration Version Log
@@ -190,3 +261,4 @@ Deadlines & Program Dates: **DATE** (`LocalDate`)
 - `V4__seed_demo_opportunities.sql`: Seeded 8 realistic demo opportunities across all 8 supported categories and initial sources.
 - `V5__discovery_sync_runs.sql`: Ingestion run telemetry, sync status tracking, and error logs.
 - `V6__matching_and_intelligence.sql`: Personalized opportunity matches, AI analyses, and token usage audit logs.
+- `V7__roadmap_and_task_management.sql`: Roadmaps, ordered milestones, actionable tasks, and verified learning resource catalog.

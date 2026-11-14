@@ -169,4 +169,50 @@ test.describe("Opportunity Discovery and Management Journeys", () => {
       await expect(page.locator("text=Model Provenance:")).toBeVisible({ timeout: 15000 });
     }
   });
+
+  test("Journey E: NEXUS Strategy — Generate Preparation Roadmap & Track Tasks", async ({ page }) => {
+    const userStrat = {
+      name: `Strat User ${timestamp}`,
+      email: `strat-${timestamp}@nexus.io`,
+      password: "Password123!",
+    };
+
+    // 1. Register User
+    await page.goto("/register");
+    await page.waitForLoadState("networkidle");
+    await page.fill('input[autocomplete="name"]', userStrat.name);
+    await page.fill('input[autocomplete="email"]', userStrat.email);
+    await page.fill('input[autocomplete="new-password"]', userStrat.password);
+    await page.click('button[type="submit"]');
+    await expect(page).toHaveURL(/.*(onboarding|dashboard)/, { timeout: 10000 });
+
+    // 2. Open Roadmaps Dashboard
+    await page.goto("/roadmaps");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("main h1")).toContainText(/Personalized Preparation Roadmaps/i);
+
+    // 3. Open Roadmap Creation Wizard
+    await page.click('a:has-text("Create Roadmap")');
+    await expect(page).toHaveURL(/.*roadmaps\/new/);
+
+    // 4. Switch to Goal-Based tab
+    await page.click('button:has-text("Career & Domain Goal")');
+    await page.fill('input[placeholder*="Distributed Systems Engineer"]', "Full-Stack Engineer");
+
+    // 5. Submit Roadmap Generation
+    await page.click('button:has-text("Synthesize Strategic Roadmap")');
+
+    // 6. Verify redirected to Roadmap Detail view
+    await expect(page).toHaveURL(/.*roadmaps\/[a-zA-Z0-9-]+/, { timeout: 15000 });
+    await expect(page.locator("main h1")).toBeVisible();
+    await expect(page.locator("text=Preparation Milestones")).toBeVisible();
+
+    // 7. Toggle first task completion
+    const checkBtn = page.locator('button[title*="Mark Complete"]').first();
+    await expect(checkBtn).toBeVisible();
+    await checkBtn.click();
+
+    // Verify progress updates
+    await expect(page.locator("text=Mark Incomplete").first()).toBeVisible({ timeout: 5000 });
+  });
 });

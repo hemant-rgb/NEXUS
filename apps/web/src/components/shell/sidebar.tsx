@@ -36,7 +36,7 @@ const NAV_ITEMS: NavItem[] = [
   { name: "Skills", href: "/skills", icon: Cpu, status: "active" },
   { name: "Settings", href: "/settings", icon: Settings, status: "active" },
   { name: "My Applications", href: "#", icon: Briefcase, status: "coming-soon" },
-  { name: "Roadmaps", href: "#", icon: Map, status: "coming-soon" },
+  { name: "Roadmaps", href: "/roadmaps", icon: Map, status: "active" },
   { name: "GitHub", href: "#", icon: GitBranch, status: "coming-soon" },
   { name: "Activity", href: "#", icon: Activity, status: "coming-soon" },
 ];
