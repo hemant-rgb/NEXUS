@@ -1,67 +1,75 @@
-# NEXUS System Architecture — Phase 1
+# NEXUS System Architecture — Phase 2: Opportunity Management & Discovery Engine
 
 ## 1. Architecture Overview
 
-NEXUS is designed as a high-performance **modular monolith** with a strict separation of concerns between the presentation layer and backend domain services.
+NEXUS is engineered as a high-performance **modular monolith** with clear domain boundaries, strict separation of concerns, and an API-first contract between the Next.js frontend and Spring Boot backend.
 
 ```
-+------------------------------------------------------------------+
-|                    NEXUS Client (Next.js 14)                     |
-|  - App Router / React Server & Client Components                 |
-|  - Command Center Shell (Sidebar, TopNav, Onboarding Wizard)     |
-|  - Dark Developer Aesthetic / High Information Density           |
-+------------------------------------------------------------------+
-                                |
-                     HTTP / REST (HttpOnly Cookie)
-                                |
-+------------------------------------------------------------------+
-|               NEXUS Backend Core (Spring Boot 3.3.5)              |
-|                                                                  |
-|  +---------------------+   +---------------------+               |
-|  |     Auth Module     |   |   Profile Module    |               |
-|  | - JWT Session Mgr   |   | - Developer Profile |               |
-|  | - BCrypt Hashing    |   | - Opportunity Prefs |               |
-|  +---------------------+   +---------------------+               |
-|                                                                  |
-|  +---------------------+   +---------------------+               |
-|  |    Skills Module    |   |   Common & Security |               |
-|  | - Skills Catalog    |   | - Error Handling    |               |
-|  | - Proficiency Matrix|   | - OpenAPI / Actuator|               |
-|  +---------------------+   +---------------------+               |
-+------------------------------------------------------------------+
-                                |
-                         Spring Data JPA
-                                |
-+------------------------------------------------------------------+
-|               Data Persistence (PostgreSQL 16)                   |
-|  - Flyway Versioned Migrations                                   |
-|  - UUID Primary Keys & UTC Timestamps                            |
-+------------------------------------------------------------------+
++-------------------------------------------------------------------------+
+|                       NEXUS Client (Next.js 14)                         |
+|  - App Router / React Server & Client Components                        |
+|  - Command Center Shell (Sidebar, TopNav, Breadcrumbs)                  |
+|  - Discovery Engine UI (/opportunities, /opportunities/[id])            |
+|  - Bookmarks & Annotation Engine (/saved)                               |
+|  - Dark Developer Aesthetic / High Information Density                  |
++-------------------------------------------------------------------------+
+                                     |
+                       HTTP / REST (HttpOnly Cookie)
+                                     |
++-------------------------------------------------------------------------+
+|                  NEXUS Backend Core (Spring Boot 3.3.5)                 |
+|                                                                         |
+|  +---------------------+   +---------------------+   +---------------+  |
+|  |     Auth Module     |   |   Profile Module    |   | Skills Module |  |
+|  | - JWT Session Mgr   |   | - Developer Profile |   | - Catalog     |  |
+|  | - BCrypt Hashing    |   | - Opportunity Prefs |   | - Matrix      |  |
+|  +---------------------+   +---------------------+   +---------------+  |
+|                                                                         |
+|  +-----------------------------------------------+   +---------------+  |
+|  |            Opportunity Module                 |   | Source Module |  |
+|  | - Dynamic Search & Specification Filtering    |   | - Connector   |  |
+|  | - Category Aggregations & Status Lifecycle    |   |   Framework   |  |
+|  | - Saved Opportunities & Annotation Notes      |   | - Provenance  |  |
+|  +-----------------------------------------------+   +---------------+  |
+|                                                                         |
+|  +-----------------------------------------------+                      |
+|  |            Discovery Sync Module              |                      |
+|  | - Scheduled Sync Engine (@Scheduled cron)    |                      |
+|  | - Deduplication & Normalization               |                      |
+|  | - Content Sanitization & SSRF Protection      |                      |
+|  +-----------------------------------------------+                      |
++-------------------------------------------------------------------------+
+                                     |
+                              Spring Data JPA
+                                     |
++-------------------------------------------------------------------------+
+|                    Data Persistence (PostgreSQL 16)                     |
+|  - Flyway Migrations (V1, V2, V3, V4)                                    |
+|  - UUID Primary Keys & UTC Timestamps                                   |
+|  - Date-only Deadlines & Strict Unique Constraints                      |
++-------------------------------------------------------------------------+
 ```
 
-## 2. Core Modules
+## 2. Core Modules & Phase 2 Capabilities
 
-### 2.1 Authentication & Security (`com.nexus.auth` & `com.nexus.common.security`)
-- **Stateless Session with Secure Cookies**: Issues signed HMAC-SHA256 JWT tokens transmitted strictly via `HttpOnly`, `SameSite=Lax` cookies named `nexus_session`.
-- **Zero LocalStorage Tokens**: Eliminates vulnerability to client-side XSS token theft.
-- **BCrypt Adaptive Hashing**: Salted and computationally adaptive password hashing.
-- **Centralized Authentication Filter**: `JwtAuthenticationFilter` intercepts requests, validates signatures, and injects `UserPrincipal` into Spring's `SecurityContext`.
+### 2.1 Opportunity Discovery (`com.nexus.opportunity`)
+- **Specification-driven Filtering**: Dynamic JPA Predicates supporting full-text keyword search across titles, organizations, and descriptions; category selection; remote-only filtering; location and organization constraints; and deadline bounding.
+- **Date-only Deadlines**: Deadlines are modeled with `LocalDate` without timezone shift corruption, accompanied by `deadline_type` (`STRICT`, `ROLLING`, `ESTIMATED`, `UNKNOWN`).
+- **Saved Opportunities & Annotations**: Users can bookmark opportunities and attach personal strategic preparation notes. Data isolation is strictly enforced via the authenticated user's `SecurityContext`.
 
-### 2.2 Developer Profile & Identity (`com.nexus.profile` & `com.nexus.user`)
-- Tracks academic institution, graduation year, degree, bio, and GitHub handle.
-- Stores multi-step onboarding progression state (`onboarding_step` and `onboarding_completed`).
-- Enforces strict data isolation: all endpoints resolve user identity through authenticated session principal, preventing IDOR vulnerabilities.
+### 2.2 Source Connector Architecture (`com.nexus.source.connector`)
+- **Provider-Independent Connectors**: Implement `OpportunitySourceConnector` with standard contracts:
+  - `String getSourceKey()`
+  - `SourceMetadata getMetadata()`
+  - `SyncResult fetchOpportunities(SyncRequest request)`
+- **Normalized Opportunity Model**: Incoming records from any source are mapped to `NormalizedOpportunity`, decoupling upstream schemas from the NEXUS domain model.
+- **Implemented Connectors**:
+  - `LocalDemoSourceConnector` (`nexus-local-demo`): Offline verified catalog with opportunities across all 8 supported categories.
+  - `VerifiedFeedSourceConnector` (`os-programs-curated`): Live public open-source programs connector with SSRF URL inspection, timeout guardrails, and prompt-injection sanitization.
 
-### 2.3 Opportunity Preferences (`com.nexus.profile`)
-- Stores delivery mode preferences (`REMOTE`, `ONSITE`, `HYBRID`, `ANY`).
-- Captures weekly bandwidth hours and subscribed opportunity categories (GSoC, Internships, Open Source Programs, Hackathons, Fellowships, Scholarships, Competitions).
-
-### 2.4 Technical Skills Matrix (`com.nexus.skills`)
-- Pre-seeded catalog of 35+ core programming languages, frameworks, cloud tools, and CS fundamentals.
-- Dynamic custom skill registration with automatic normalization and deduplication.
-- Experience calibration (proficiency: `Beginner`, `Intermediate`, `Advanced`, and years of experience).
-
-## 3. Technology Stack Justification
-- **Java 21 LTS + Spring Boot 3**: Enterprise reliability, strong type safety, mature ecosystem, and rapid runtime performance.
-- **PostgreSQL 16**: ACID guarantees, relational integrity with foreign keys, and support for JSONB operations.
-- **Next.js 14 App Router + Tailwind CSS**: Zero runtime CSS overhead, optimized static generation, and component modularity.
+### 2.3 Discovery Synchronization (`com.nexus.discovery`)
+- **Deduplication Strategy**:
+  1. Primary check: `OpportunityListing` matching `(source_id, external_id)`.
+  2. Secondary check: Case-insensitive match on `(title, organization)`.
+  3. Existing records are updated with updated fields and `lastSeenAt` refreshed without duplicate creation.
+- **Automated Scheduling**: Scheduled synchronization runs periodically via Spring Scheduling (`@Scheduled`), with manual admin sync triggers available via protected endpoints.

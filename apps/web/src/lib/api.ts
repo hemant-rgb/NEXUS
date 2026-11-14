@@ -1,4 +1,16 @@
-import { ApiResponse, Skill, User, UserPreferences, UserProfile, UserSkill } from "./types";
+import {
+  ApiResponse,
+  CategoryCount,
+  Opportunity,
+  OpportunitySourceItem,
+  PageResponse,
+  SavedOpportunity,
+  Skill,
+  User,
+  UserPreferences,
+  UserProfile,
+  UserSkill,
+} from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
@@ -83,6 +95,73 @@ export const api = {
       request<UserSkill>(`/users/me/skills/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
     deleteUserSkill: (id: string) =>
       request<void>(`/users/me/skills/${id}`, { method: "DELETE" }),
+  },
+
+  opportunities: {
+    list: (params: {
+      query?: string;
+      category?: string;
+      location?: string;
+      remoteOnly?: boolean;
+      status?: string;
+      organization?: string;
+      deadlineBefore?: string;
+      deadlineAfter?: string;
+      sortBy?: string;
+      page?: number;
+      size?: number;
+    } = {}) => {
+      const searchParams = new URLSearchParams();
+      if (params.query) searchParams.set("query", params.query);
+      if (params.category) searchParams.set("category", params.category);
+      if (params.location) searchParams.set("location", params.location);
+      if (params.remoteOnly !== undefined) searchParams.set("remoteOnly", String(params.remoteOnly));
+      if (params.status) searchParams.set("status", params.status);
+      if (params.organization) searchParams.set("organization", params.organization);
+      if (params.deadlineBefore) searchParams.set("deadlineBefore", params.deadlineBefore);
+      if (params.deadlineAfter) searchParams.set("deadlineAfter", params.deadlineAfter);
+      if (params.sortBy) searchParams.set("sortBy", params.sortBy);
+      if (params.page !== undefined) searchParams.set("page", String(params.page));
+      if (params.size !== undefined) searchParams.set("size", String(params.size));
+      const queryString = searchParams.toString();
+      return request<PageResponse<Opportunity>>(`/opportunities${queryString ? `?${queryString}` : ""}`, {
+        method: "GET",
+      });
+    },
+
+    get: (id: string) =>
+      request<Opportunity>(`/opportunities/${id}`, { method: "GET" }),
+
+    categories: () =>
+      request<CategoryCount[]>("/opportunities/categories", { method: "GET" }),
+
+    featured: () =>
+      request<Opportunity[]>("/opportunities/featured", { method: "GET" }),
+
+    saved: () =>
+      request<SavedOpportunity[]>("/users/me/saved-opportunities", { method: "GET" }),
+
+    save: (opportunityId: string, notes?: string) =>
+      request<SavedOpportunity>("/users/me/saved-opportunities", {
+        method: "POST",
+        body: JSON.stringify({ opportunityId, notes }),
+      }),
+
+    updateNotes: (opportunityId: string, notes: string) =>
+      request<SavedOpportunity>(`/users/me/saved-opportunities/${opportunityId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ notes }),
+      }),
+
+    removeSaved: (opportunityId: string) =>
+      request<void>(`/users/me/saved-opportunities/${opportunityId}`, {
+        method: "DELETE",
+      }),
+  },
+
+  sources: {
+    list: () =>
+      request<OpportunitySourceItem[]>("/sources", { method: "GET" }),
   },
 };
 

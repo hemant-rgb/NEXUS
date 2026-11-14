@@ -23,7 +23,7 @@ DISCOVER → UNDERSTAND → MATCH → PREPARE → EXECUTE → TRACK
 
 ### Module Status
 - **Phase 1 (Completed)**: Engineering Foundation, Authentication, Developer Onboarding Wizard, Technical Skills Matrix, and Command Center Shell.
-- **Phase 2 (Upcoming)**: NEXUS Scout (Discovery Pipeline) & NEXUS Intelligence (Requirement Decomposition & Matching).
+- **Phase 2 (Completed)**: Opportunity Management & Discovery Engine (NEXUS Scout). 8 opportunity categories, provider-independent connector architecture, deduplication, scheduled ingestion, search & filtering, saved opportunities with developer notes, and high-density technical UI.
 - **Phase 3 (Upcoming)**: NEXUS Strategy (Personalized Roadmaps) & NEXUS Execution (GitHub Contribution Assistant).
 - **Phase 4 (Upcoming)**: NEXUS Pulse (Deadline Telemetry Monitor).
 
@@ -74,6 +74,7 @@ Open `http://localhost:3000` in your browser.
 ---
 
 ## Documentation Links
+- [Phase 2 Release Notes](docs/RELEASE_PHASE_2.md)
 - [System Architecture](docs/ARCHITECTURE.md)
 - [Database Schema & Migrations](docs/DATABASE.md)
 - [REST API Contracts](docs/API.md)

@@ -57,6 +57,65 @@ export interface UserSkill {
   createdAt: string;
 }
 
+export interface Opportunity {
+  id: string;
+  title: string;
+  organization: string;
+  description: string;
+  category: string;
+  opportunityType: string;
+  location?: string;
+  countryCode?: string;
+  remoteAvailable: boolean;
+  eligibilityCriteria?: string;
+  requiredSkills: string[];
+  preferredSkills: string[];
+  applicationUrl: string;
+  officialWebsiteUrl?: string;
+  deadline?: string;
+  deadlineType: "STRICT" | "ROLLING" | "ESTIMATED" | "UNKNOWN";
+  startDate?: string;
+  endDate?: string;
+  status: "OPEN" | "UPCOMING" | "CLOSED" | "ARCHIVED";
+  createdAt: string;
+  lastVerifiedAt: string;
+  isSaved?: boolean;
+}
+
+export interface SavedOpportunity {
+  id: string;
+  opportunityId: string;
+  opportunity: Opportunity;
+  savedAt: string;
+  notes?: string;
+}
+
+export interface CategoryCount {
+  category: string;
+  count: number;
+}
+
+export interface OpportunitySourceItem {
+  id: string;
+  name: string;
+  sourceKey: string;
+  sourceType: string;
+  baseUrl: string;
+  enabled: boolean;
+  lastSuccessfulSyncAt?: string;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  empty: boolean;
+  first: boolean;
+  last: boolean;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -67,9 +126,9 @@ export interface ApiResponse<T> {
 
 export const OPPORTUNITY_CATEGORIES = [
   "Internships",
-  "Jobs",
+  "Full-time jobs",
   "Google Summer of Code",
-  "Open Source Programs",
+  "Open-source programs",
   "Hackathons",
   "Scholarships",
   "Fellowships",

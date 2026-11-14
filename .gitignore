@@ -26,6 +26,7 @@ apps/web/dist/
 apps/web/.turbo/
 .npm
 .eslintcache
+*.tsbuildinfo
 
 # Java / Backend / Maven
 target/

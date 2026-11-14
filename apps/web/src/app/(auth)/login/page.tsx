@@ -68,7 +68,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action="#" onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Input
                 label="Developer Email"

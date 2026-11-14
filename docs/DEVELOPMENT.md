@@ -53,7 +53,21 @@ npm run dev
 - Run frontend test suite: `npm test`
 - Run E2E test suite: `npx playwright test`
 
-## 5. Troubleshooting
+## 5. Opportunity Ingestion & Background Sync
+
+The backend contains a provider-independent external source sync engine:
+- Connectors register dynamically via Spring's `List<OpportunitySourceConnector>`.
+- Built-in connectors:
+  - `nexus-local-demo`: Local curated opportunities across all 8 supported categories.
+  - `os-programs-curated`: External feed connector with SSRF defense (HTTPS only, RFC 1918 private IP rejection) and prompt sanitization.
+- **Scheduled Sync**: Automatically runs periodically (`opportunity.sync.cron="0 0 */6 * * *"` by default, configurable in `application.yml`).
+- **Manual Trigger (Admin)**:
+  ```bash
+  curl -X POST http://localhost:8080/api/v1/sources/nexus-local-demo/sync \
+    -H "Cookie: nexus_session=<ADMIN_JWT>"
+  ```
+
+## 6. Troubleshooting
 - **Database Connection Refused**: Verify PostgreSQL container is running (`docker compose ps`). Check that port 5432 is not occupied by another local service.
 - **CORS/Session Cookie Issue**: Ensure the frontend calls `/api/v1` with `credentials: "include"`. In development, Next.js rewrites forward requests to `http://localhost:8080`.
 - **Flyway Migration Failure**: If schema changes are modified after migration, execute `docker compose down -v` to reset the test volume.

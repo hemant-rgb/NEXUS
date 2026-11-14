@@ -1,114 +1,136 @@
-# NEXUS Database Documentation
+# NEXUS Database Documentation — Schema & Relational Model
 
-## 1. Relational Model & Schema Design
-
-Database: **PostgreSQL 16**
-Schema Management: **Flyway Migrations** (`classpath:db/migration`)
+Database Engine: **PostgreSQL 16**
+Schema Management: **Flyway Migrations** (`src/main/resources/db/migration`)
 Primary Keys: **UUID** (`gen_random_uuid()`)
 Timestamps: **TIMESTAMP WITH TIME ZONE** (UTC)
+Deadlines & Program Dates: **DATE** (`LocalDate`)
+
+---
+
+## 1. Relational Model
 
 ```
 +--------------------+            +------------------------+
 |       users        | 1        1 |     user_profiles      |
 +--------------------+------------+------------------------+
 | id (UUID, PK)      |            | id (UUID, PK)          |
-| email (VARCHAR)    |            | user_id (UUID, FK, UQ) |
-| password_hash      |            | education_level        |
-| full_name          |            | degree                 |
-| email_verified     |            | field_of_study         |
-| role               |            | institution            |
-| created_at (UTC)   |            | graduation_year        |
-| updated_at (UTC)   |            | country_code           |
-+--------------------+            | timezone               |
-          | 1                     | experience_level       |
-          |                       | bio                    |
-          | 1                     | github_username        |
-+--------------------+            | availability_hours     |
-|  user_preferences  |            | onboarding_completed   |
-+--------------------+            | onboarding_step        |
-| id (UUID, PK)      |            | created_at (UTC)       |
-| user_id (UUID, FK) |            | updated_at (UTC)       |
-| preferred_cats     |            +------------------------+
-| remote_pref        |
-| preferred_cntrs    |
-| weekly_hours       |
-| interests          |
-| created_at (UTC)   |
-| updated_at (UTC)   |
-+--------------------+
-          | 1
-          |
+| email (VARCHAR, UQ)|            | user_id (UUID, FK, UQ) |
+| password_hash      |            +------------------------+
+| full_name          |
+| role               |            +------------------------+
+| created_at (UTC)   | 1        1 |    user_preferences    |
++--------------------+------------+------------------------+
+          |                       | id (UUID, PK)          |
+          | 1                     | user_id (UUID, FK, UQ) |
+          |                       +------------------------+
           | *
 +--------------------+            +------------------------+
-|    user_skills     | *        1 |         skills         |
+| saved_opportunities| *        1 |     opportunities      |
 +--------------------+------------+------------------------+
 | id (UUID, PK)      |            | id (UUID, PK)          |
-| user_id (UUID, FK) |            | name (VARCHAR, UQ)     |
-| skill_id (UUID, FK)|            | normalized_name (UQ)   |
-| proficiency        |            | category               |
-| years_experience   |            | created_at (UTC)       |
-| created_at (UTC)   |            +------------------------+
-+--------------------+
+| user_id (UUID, FK) |            | title (VARCHAR)        |
+| opportunity_id(FK) |            | organization (VARCHAR) |
+| saved_at (UTC)     |            | description (TEXT)     |
+| notes (TEXT)       |            | category (VARCHAR)     |
+| UQ(user, opp)      |            | opportunity_type (VAR) |
++--------------------+            | location (VARCHAR)     |
+                                  | country_code (VARCHAR) |
+                                  | remote_available (BOOL)|
+                                  | eligibility_criteria   |
+                                  | required_skills (JSON) |
+                                  | preferred_skills (JSON)|
+                                  | application_url (TEXT) |
+                                  | official_website_url   |
+                                  | deadline (DATE)        |
+                                  | deadline_type (VARCHAR)|
+                                  | start_date (DATE)      |
+                                  | end_date (DATE)        |
+                                  | status (VARCHAR)       |
+                                  | created_at (UTC)       |
+                                  | last_verified_at (UTC) |
+                                  +------------------------+
+                                              | 1
+                                              |
+                                              | *
++--------------------+            +------------------------+
+|opportunity_sources | 1        * |  opportunity_listings  |
++--------------------+------------+------------------------+
+| id (UUID, PK)      |            | id (UUID, PK)          |
+| name (VARCHAR)     |            | opportunity_id (FK)    |
+| source_key (UQ)    |            | source_id (FK)         |
+| source_type        |            | external_id (VARCHAR)  |
+| base_url           |            | original_url (TEXT)    |
+| enabled (BOOLEAN)  |            | first_seen_at (UTC)    |
+| last_sync_at (UTC) |            | last_seen_at (UTC)     |
++--------------------+            | raw_metadata (TEXT)    |
+                                  | UQ(source, external_id)|
+                                  +------------------------+
 ```
 
-## 2. Table Specifications
+---
 
-### `users`
-- `id`: UUID (Primary Key)
-- `email`: VARCHAR(255) NOT NULL UNIQUE
-- `password_hash`: VARCHAR(255) NOT NULL
-- `full_name`: VARCHAR(255) NOT NULL
-- `email_verified`: BOOLEAN NOT NULL DEFAULT FALSE
-- `role`: VARCHAR(50) NOT NULL DEFAULT 'ROLE_USER'
-- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-- `updated_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+## 2. Table Specifications & Constraints
 
-### `user_profiles`
-- `id`: UUID (Primary Key)
-- `user_id`: UUID NOT NULL UNIQUE REFERENCES `users(id)` ON DELETE CASCADE
-- `education_level`: VARCHAR(100)
-- `degree`: VARCHAR(150)
-- `field_of_study`: VARCHAR(150)
-- `institution`: VARCHAR(200)
-- `graduation_year`: INTEGER
-- `country_code`: VARCHAR(10)
-- `timezone`: VARCHAR(100)
-- `experience_level`: VARCHAR(50)
-- `bio`: TEXT
-- `github_username`: VARCHAR(100)
-- `availability_hours`: INTEGER
-- `onboarding_completed`: BOOLEAN NOT NULL DEFAULT FALSE
-- `onboarding_step`: INTEGER NOT NULL DEFAULT 1
-- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-- `updated_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-
-### `skills`
-- `id`: UUID (Primary Key)
-- `name`: VARCHAR(100) NOT NULL UNIQUE
-- `normalized_name`: VARCHAR(100) NOT NULL UNIQUE
+### `opportunities`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `title`: VARCHAR(255) NOT NULL
+- `organization`: VARCHAR(255) NOT NULL
+- `description`: TEXT NOT NULL
 - `category`: VARCHAR(100) NOT NULL
+- `opportunity_type`: VARCHAR(50) NOT NULL
+- `location`: VARCHAR(255)
+- `country_code`: VARCHAR(10)
+- `remote_available`: BOOLEAN NOT NULL DEFAULT FALSE
+- `eligibility_criteria`: TEXT
+- `required_skills`: TEXT (JSON array string)
+- `preferred_skills`: TEXT (JSON array string)
+- `application_url`: TEXT NOT NULL
+- `official_website_url`: TEXT
+- `deadline`: DATE (Date-only to prevent timezone truncation)
+- `deadline_type`: VARCHAR(50) NOT NULL DEFAULT 'STRICT'
+- `start_date`: DATE
+- `end_date`: DATE
+- `status`: VARCHAR(50) NOT NULL DEFAULT 'OPEN'
 - `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- `updated_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- `last_verified_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- **Indexes**: `idx_opportunities_category`, `idx_opportunities_status`, `idx_opportunities_deadline`, `idx_opportunities_org`, `idx_opportunities_remote`.
 
-### `user_skills`
-- `id`: UUID (Primary Key)
-- `user_id`: UUID NOT NULL REFERENCES `users(id)` ON DELETE CASCADE
-- `skill_id`: UUID NOT NULL REFERENCES `skills(id)` ON DELETE RESTRICT
-- `proficiency`: VARCHAR(50) NOT NULL (`Beginner`, `Intermediate`, `Advanced`)
-- `years_experience`: NUMERIC(4, 1) NOT NULL DEFAULT 0.0
-- `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-- `CONSTRAINT uq_user_skill`: UNIQUE (`user_id`, `skill_id`)
-
-### `user_preferences`
-- `id`: UUID (Primary Key)
-- `user_id`: UUID NOT NULL UNIQUE REFERENCES `users(id)` ON DELETE CASCADE
-- `preferred_categories`: TEXT (JSON array string)
-- `remote_preference`: VARCHAR(50)
-- `preferred_countries`: TEXT (JSON array string)
-- `weekly_hours`: INTEGER
-- `interests`: TEXT (JSON array string)
+### `opportunity_sources`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `name`: VARCHAR(150) NOT NULL
+- `source_key`: VARCHAR(100) NOT NULL UNIQUE
+- `source_type`: VARCHAR(50) NOT NULL DEFAULT 'DEMO'
+- `base_url`: VARCHAR(500)
+- `enabled`: BOOLEAN NOT NULL DEFAULT TRUE
+- `last_successful_sync_at`: TIMESTAMP WITH TIME ZONE
 - `created_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 - `updated_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 
-## 3. Migration History
-1. `V1__initial_schema.sql`: Creates core tables, foreign keys, indexes, and constraints.
-2. `V2__seed_initial_skills.sql`: Seeds catalog of 35 initial engineering and scientific skills.
+### `opportunity_listings`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `opportunity_id`: UUID NOT NULL REFERENCES `opportunities(id)` ON DELETE CASCADE
+- `source_id`: UUID NOT NULL REFERENCES `opportunity_sources(id)` ON DELETE CASCADE
+- `external_id`: VARCHAR(255) NOT NULL
+- `original_url`: TEXT
+- `first_seen_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- `last_seen_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- `raw_metadata`: TEXT
+- **Unique Constraint**: `uq_source_external` (`source_id`, `external_id`)
+
+### `saved_opportunities`
+- `id`: UUID PRIMARY KEY DEFAULT gen_random_uuid()
+- `user_id`: UUID NOT NULL REFERENCES `users(id)` ON DELETE CASCADE
+- `opportunity_id`: UUID NOT NULL REFERENCES `opportunities(id)` ON DELETE CASCADE
+- `saved_at`: TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+- `notes`: TEXT
+- **Unique Constraint**: `uq_user_saved_opportunity` (`user_id`, `opportunity_id`)
+
+---
+
+## 3. Migration Version Log
+- `V1__initial_schema.sql`: Core user, profile, preferences, and skills tables.
+- `V2__seed_initial_skills.sql`: Seeded 35 core technical competencies.
+- `V3__opportunity_and_source_schema.sql`: Opportunity discovery, sources, listings, and saved opportunities tables.
+- `V4__seed_demo_opportunities.sql`: Seeded 8 realistic demo opportunities across all 8 supported categories and initial sources.

@@ -7,6 +7,8 @@ import { Bell, Terminal, ShieldCheck, ChevronRight } from "lucide-react";
 
 const TITLE_MAP: Record<string, { title: string; category: string }> = {
   "/dashboard": { title: "Command Center", category: "Core Workspace" },
+  "/opportunities": { title: "Opportunity Discovery", category: "Scout Engine" },
+  "/saved": { title: "Saved Opportunities", category: "Bookmarks" },
   "/onboarding": { title: "Profile Onboarding", category: "Setup" },
   "/profile": { title: "Developer Profile", category: "Identity" },
   "/skills": { title: "Technical Skills Matrix", category: "Capabilities" },
@@ -15,7 +17,13 @@ const TITLE_MAP: Record<string, { title: string; category: string }> = {
 
 export function TopNav() {
   const pathname = usePathname();
-  const current = TITLE_MAP[pathname] || { title: "Command Center", category: "NEXUS" };
+  let current = TITLE_MAP[pathname];
+  if (!current && pathname.startsWith("/opportunities/")) {
+    current = { title: "Opportunity Specification", category: "Scout Engine" };
+  }
+  if (!current) {
+    current = { title: "Command Center", category: "NEXUS" };
+  }
 
   return (
     <header className="h-14 border-b border-surface-border bg-bg-secondary px-6 flex items-center justify-between select-none">

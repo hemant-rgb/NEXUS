@@ -16,6 +16,7 @@ test.describe("Critical E2E Authentication and Onboarding Flow", () => {
 
     // 2. Register new developer account
     await expect(page).toHaveURL(/.*register/);
+    await page.waitForLoadState("networkidle");
     await page.fill('input[autocomplete="name"]', testUser.name);
     await page.fill('input[autocomplete="email"]', testUser.email);
     await page.fill('input[autocomplete="new-password"]', testUser.password);
@@ -23,7 +24,7 @@ test.describe("Critical E2E Authentication and Onboarding Flow", () => {
 
     // 3. Arrive at Onboarding Wizard Step 1
     await expect(page).toHaveURL(/.*onboarding/, { timeout: 10000 });
-    await expect(page.locator("text=Profile Onboarding")).toBeVisible();
+    await expect(page.locator("text=Profile Onboarding").first()).toBeVisible();
 
     // Fill Step 1 details
     await page.fill('input[placeholder*="Berkeley"]', "MIT");
@@ -57,11 +58,11 @@ test.describe("Critical E2E Authentication and Onboarding Flow", () => {
 
     // 9. Arrive at Dashboard Command Center
     await expect(page).toHaveURL(/.*dashboard/, { timeout: 10000 });
-    await expect(page.locator(`text=${testUser.name}`)).toBeVisible();
+    await expect(page.locator(`text=${testUser.name}`).first()).toBeVisible();
 
     // 10. Verify Data Persists After Reload
     await page.reload();
-    await expect(page.locator(`text=${testUser.name}`)).toBeVisible();
+    await expect(page.locator(`text=${testUser.name}`).first()).toBeVisible();
 
     // 11. Log Out
     await page.click('button[title="Log out"]');
