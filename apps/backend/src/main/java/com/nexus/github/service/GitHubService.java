@@ -11,6 +11,9 @@ import com.nexus.skills.entity.UserSkill;
 import com.nexus.skills.repository.UserSkillRepository;
 import com.nexus.user.entity.User;
 import com.nexus.user.repository.UserRepository;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,10 +116,21 @@ public class GitHubService {
 
     @Transactional(readOnly = true)
     public List<GitHubRepoResponse> searchRepositories(UUID userId, String query, String language) {
-        String cleanQuery = (query != null && !query.isBlank()) ? query.trim() : null;
-        String cleanLang = (language != null && !language.isBlank() && !"ALL".equalsIgnoreCase(language)) ? language.trim() : null;
+        Specification<GitHubRepository> spec = (root, q, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (query != null && !query.isBlank()) {
+                String pattern = "%" + query.trim().toLowerCase() + "%";
+                Predicate nameLike = cb.like(cb.lower(root.get("fullName")), pattern);
+                Predicate descLike = cb.like(cb.lower(root.get("description")), pattern);
+                predicates.add(cb.or(nameLike, descLike));
+            }
+            if (language != null && !language.isBlank() && !"ALL".equalsIgnoreCase(language)) {
+                predicates.add(cb.equal(cb.lower(root.get("primaryLanguage")), language.trim().toLowerCase()));
+            }
+            return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
+        };
 
-        List<GitHubRepository> repos = repositoryRepository.searchRepositories(cleanQuery, cleanLang);
+        List<GitHubRepository> repos = repositoryRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "starsCount"));
         Set<UUID> savedRepoIds = new HashSet<>();
         if (userId != null) {
             savedRepositoryRepository.findByUserIdOrderBySavedAtDesc(userId)
@@ -164,11 +178,30 @@ public class GitHubService {
     public List<GitHubIssueResponse> searchIssues(
             UUID userId, String query, String language, Boolean goodFirstOnly, Boolean helpWantedOnly, String state) {
 
-        String cleanQuery = (query != null && !query.isBlank()) ? query.trim() : null;
-        String cleanLang = (language != null && !language.isBlank() && !"ALL".equalsIgnoreCase(language)) ? language.trim() : null;
-        String cleanState = (state != null && !state.isBlank() && !"ALL".equalsIgnoreCase(state)) ? state.trim().toUpperCase() : null;
+        Specification<GitHubIssue> spec = (root, q, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (query != null && !query.isBlank()) {
+                String pattern = "%" + query.trim().toLowerCase() + "%";
+                Predicate titleLike = cb.like(cb.lower(root.get("title")), pattern);
+                Predicate bodyLike = cb.like(cb.lower(root.get("body")), pattern);
+                predicates.add(cb.or(titleLike, bodyLike));
+            }
+            if (language != null && !language.isBlank() && !"ALL".equalsIgnoreCase(language)) {
+                predicates.add(cb.equal(cb.lower(root.get("repository").get("primaryLanguage")), language.trim().toLowerCase()));
+            }
+            if (Boolean.TRUE.equals(goodFirstOnly)) {
+                predicates.add(cb.isTrue(root.get("isGoodFirstIssue")));
+            }
+            if (Boolean.TRUE.equals(helpWantedOnly)) {
+                predicates.add(cb.isTrue(root.get("isHelpWanted")));
+            }
+            if (state != null && !state.isBlank() && !"ALL".equalsIgnoreCase(state)) {
+                predicates.add(cb.equal(cb.upper(root.get("state")), state.trim().toUpperCase()));
+            }
+            return predicates.isEmpty() ? null : cb.and(predicates.toArray(new Predicate[0]));
+        };
 
-        List<GitHubIssue> issues = issueRepository.searchIssues(cleanQuery, cleanLang, goodFirstOnly, helpWantedOnly, cleanState);
+        List<GitHubIssue> issues = issueRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "githubCreatedAt"));
 
         Set<UUID> savedIssueIds = new HashSet<>();
         List<UserSkill> userSkills = Collections.emptyList();

@@ -144,10 +144,10 @@ test.describe("Opportunity Discovery and Management Journeys", () => {
     // 2. Open Recommendations Feed
     await page.goto("/recommendations");
     await page.waitForLoadState("networkidle");
-    await expect(page.locator("main h1")).toContainText(/Personalized Opportunity Intelligence/i);
+    await expect(page.locator("main h1")).toContainText(/Personalized Recommendations/i);
 
     // 3. Verify Refresh button exists and recommendations feed loads
-    const refreshBtn = page.locator('button:has-text("Recalculate Matches")');
+    const refreshBtn = page.locator('button:has-text("Refresh Intelligence")');
     await expect(refreshBtn).toBeVisible();
 
     // 4. Navigate to an opportunity details page from recommendation or opportunities
@@ -213,6 +213,6 @@ test.describe("Opportunity Discovery and Management Journeys", () => {
     await checkBtn.click();
 
     // Verify progress updates
-    await expect(page.locator("text=Mark Incomplete").first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('button[title*="Mark Incomplete"]').first()).toBeVisible({ timeout: 5000 });
   });
 });
